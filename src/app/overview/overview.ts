@@ -1,16 +1,14 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { JokeCard } from './joke-card';
 
 @Component({
-  imports: [JokeCard, RouterLink],
+  imports: [JokeCard],
   selector: 'app-overview',
   template: `
     <main class="overview">
       <section class="overview-content">
         <h1>Übersicht</h1>
         <p>Diese Seite wurde über das Routing geladen.</p>
-        <a routerLink="/" class="button">Zurück zur Startseite</a>
       </section>
       <app-joke-card />
     </main>

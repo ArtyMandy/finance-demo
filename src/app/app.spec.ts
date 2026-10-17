@@ -28,31 +28,38 @@ describe('App', () => {
 
   it('should render the home page at the root route', async () => {
     const harness = await RouterTestingHarness.create('/');
-    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Finance-Demo');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Übersicht');
   });
 
-  it('should show sign-in and sign-up links in the header', async () => {
-    const harness = await RouterTestingHarness.create('/');
-    const links = Array.from(
-      harness.routeNativeElement?.querySelectorAll<HTMLAnchorElement>('nav a.button') ?? [],
-    ).map((link) => [link.textContent?.trim(), link.getAttribute('href')]);
-    expect(links).toEqual([
-      ['Anmelden', '/anmelden'],
-      ['Registrieren', '/anmelden?modus=registrieren'],
-    ]);
+  it('should show the header with overview, sign-in and sign-up links on every page', async () => {
+    const fixture = TestBed.createComponent(App);
+    for (const url of ['/', '/anmelden']) {
+      await TestBed.inject(Router).navigateByUrl(url);
+      await fixture.whenStable();
+
+      const links = Array.from(
+        fixture.nativeElement.querySelectorAll('app-site-header nav a') as NodeListOf<HTMLAnchorElement>,
+      ).map((link) => [link.textContent?.trim(), link.getAttribute('href')]);
+      expect(links).toEqual([
+        ['Übersicht', '/'],
+        ['Anmelden', '/anmelden'],
+        ['Registrieren', '/anmelden?modus=registrieren'],
+      ]);
+    }
   });
 
   it('should open the login page in sign-up mode via the Registrieren link', async () => {
-    const harness = await RouterTestingHarness.create('/');
-    const link = harness.routeNativeElement?.querySelector<HTMLAnchorElement>('a.button-secondary');
+    const fixture = TestBed.createComponent(App);
+    await TestBed.inject(Router).navigateByUrl('/anmelden');
+    await fixture.whenStable();
 
     const navigated = firstValueFrom(
       TestBed.inject(Router).events.pipe(filter((event) => event instanceof NavigationEnd)),
     );
-    link?.click();
+    fixture.nativeElement.querySelector('app-site-header a.button-secondary').click();
     await navigated;
-    await harness.fixture.whenStable();
+    await fixture.whenStable();
 
-    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Registrieren');
+    expect(fixture.nativeElement.querySelector('app-login h1')?.textContent).toContain('Registrieren');
   });
 });

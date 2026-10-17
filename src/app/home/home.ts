@@ -1,134 +1,87 @@
-import { NgOptimizedImage } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
+import { IncomeChart } from './income-chart';
 
 @Component({
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [IncomeChart, RouterLink],
   selector: 'app-home',
   template: `
-    <header class="site-header">
-      <a routerLink="/" class="brand">
-        <img ngSrc="logo.svg" width="40" height="40" alt="" priority />
-        <span>Finance-Demo</span>
-      </a>
-      <nav aria-label="Konto" class="account">
-        @if (auth.user(); as user) {
-          <span class="email">{{ user.email }}</span>
-          <button type="button" class="button" [disabled]="busy()" (click)="signOut()">Abmelden</button>
-        } @else {
-          <a routerLink="/anmelden" class="button">Anmelden</a>
-          <a routerLink="/anmelden" [queryParams]="{ modus: 'registrieren' }" class="button button-secondary">
-            Registrieren
-          </a>
-        }
-      </nav>
-    </header>
-
     <main class="content">
-      <h1>Finance-Demo</h1>
-      <section class="features" aria-label="Funktionen">
-        @if (auth.user()) {
-          <a routerLink="/einkommen" class="feature">
-            <h2>Einkommen erfassen</h2>
-            <p>Monatliches Einkommen eintragen – auch für mehrere Monate auf einmal.</p>
-          </a>
-        }
-      </section>
+      <h1 class="visually-hidden">Übersicht</h1>
+      @if (auth.user()) {
+        <nav class="features" aria-labelledby="features-heading">
+          <h2 id="features-heading">Funktionen</h2>
+          <ul>
+            <li><a routerLink="/einkommen">Einkommen erfassen</a></li>
+          </ul>
+        </nav>
+        <app-income-chart class="chart" />
+      } @else {
+        <p class="hint">Melde dich an, um deine Funktionen und dein monatliches Einkommen zu sehen.</p>
+      }
     </main>
   `,
   styles: `
-    .site-header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      border-bottom: 1px solid #cbd5e1;
-      background: #fff;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: inherit;
-      font-size: 1.25rem;
-      font-weight: 700;
-      text-decoration: none;
-    }
-
-    .account {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .email {
-      overflow-wrap: anywhere;
-    }
-
     .content {
+      display: grid;
+      grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+      gap: 2rem;
+      align-items: start;
+      max-width: 72rem;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .features h2 {
+      margin: 0 0 0.75rem;
+      color: #475569;
+      font-size: 0.875rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    ul {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 2rem;
-      max-width: 60rem;
-      margin: 0 auto;
-      padding: 3rem 1rem;
+      gap: 0.25rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
 
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-      gap: 1rem;
-      width: 100%;
-      min-height: 12rem;
-    }
-
-    .feature {
+    li a {
       display: block;
-      padding: 1.5rem;
-      border: 1px solid #cbd5e1;
-      border-radius: 0.75rem;
-      background: #fff;
-      color: inherit;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      color: var(--color-primary);
+      font-weight: 600;
       text-decoration: none;
     }
 
-    .feature:hover {
-      border-color: var(--color-primary);
+    li a:hover {
+      background: #f0fdfa;
     }
 
-    .feature:focus-visible,
-    .brand:focus-visible {
+    li a:focus-visible {
       outline: 3px solid var(--color-text);
-      outline-offset: 3px;
+      outline-offset: 2px;
     }
 
-    .feature h2 {
-      margin: 0 0 0.5rem;
-      color: var(--color-primary);
-      font-size: 1.25rem;
+    .hint {
+      grid-column: 1 / -1;
+      margin: 2rem 0;
+      color: #475569;
+      text-align: center;
     }
 
-    .feature p {
-      margin: 0;
+    @media (max-width: 48rem) {
+      .content {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
   `,
 })
 export class Home {
   protected readonly auth = inject(Auth);
-  protected readonly busy = signal(false);
-
-  protected async signOut(): Promise<void> {
-    this.busy.set(true);
-    try {
-      await this.auth.signOut();
-    } finally {
-      this.busy.set(false);
-    }
-  }
 }

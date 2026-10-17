@@ -1,6 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { email, form, FormField, minLength, required, submit } from '@angular/forms/signals';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Auth } from '../core/auth';
 import { Connectivity } from '../core/connectivity';
 
@@ -13,7 +14,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 @Component({
-  imports: [FormField, RouterLink],
+  imports: [FormField],
   selector: 'app-login',
   template: `
     <main class="login">
@@ -59,7 +60,6 @@ const ERROR_MESSAGES: Record<string, string> = {
       <button type="button" class="link-button" (click)="toggleMode()">
         {{ mode() === 'signIn' ? 'Noch kein Konto? Registrieren' : 'Schon ein Konto? Anmelden' }}
       </button>
-      <a routerLink="/">Zur Startseite</a>
     </main>
   `,
   styles: `
@@ -111,10 +111,6 @@ const ERROR_MESSAGES: Record<string, string> = {
       text-decoration: underline;
       cursor: pointer;
     }
-
-    a {
-      color: var(--color-primary);
-    }
   `,
 })
 export class Login {
@@ -123,8 +119,11 @@ export class Login {
   private readonly connectivity = inject(Connectivity);
 
   protected readonly offline = computed(() => !this.connectivity.online());
-  protected readonly mode = signal<Mode>(
-    inject(ActivatedRoute).snapshot.queryParamMap.get('modus') === 'registrieren' ? 'signUp' : 'signIn',
+  private readonly queryParams = toSignal(inject(ActivatedRoute).queryParamMap);
+
+  /** Follows ?modus=registrieren (e.g. the header links) and can still be toggled on the page. */
+  protected readonly mode = linkedSignal<Mode>(() =>
+    this.queryParams()?.get('modus') === 'registrieren' ? 'signUp' : 'signIn',
   );
   protected readonly busy = signal(false);
   protected readonly message = signal('');

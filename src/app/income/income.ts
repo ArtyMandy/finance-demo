@@ -1,7 +1,5 @@
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { form, FormField, min, pattern, required, submit, validate } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
-import { Auth } from '../core/auth';
 import { Connectivity } from '../core/connectivity';
 import { IncomeApi } from './income-api';
 import { monthsBetween } from './month-range';
@@ -18,17 +16,11 @@ function formatMonth(isoDate: string): string {
 }
 
 @Component({
-  imports: [FormField, RouterLink],
+  imports: [FormField],
   selector: 'app-income',
   template: `
     <main class="income">
-      <header class="income-header">
-        <h1>Monatliches Einkommen</h1>
-        <button type="button" class="link-button" [disabled]="offline()" (click)="signOut()">
-          Abmelden
-        </button>
-      </header>
-      <p class="hint">Angemeldet als {{ auth.user()?.email }}</p>
+      <h1>Monatliches Einkommen</h1>
 
       <form class="income-form" novalidate (submit)="onSubmit(); $event.preventDefault()">
         <label>
@@ -63,7 +55,7 @@ function formatMonth(isoDate: string): string {
       </p>
       @if (offline()) {
         <p class="hint">
-          Du bist offline. Speichern, Löschen und Abmelden gehen wieder, sobald du online bist.
+          Du bist offline. Speichern und Löschen gehen wieder, sobald du online bist.
         </p>
       }
 
@@ -126,8 +118,6 @@ function formatMonth(isoDate: string): string {
           <p>Einträge werden geladen …</p>
         }
       </section>
-
-      <a routerLink="/">Zur Startseite</a>
     </main>
   `,
   styles: `
@@ -138,14 +128,6 @@ function formatMonth(isoDate: string): string {
       max-width: 36rem;
       margin: 0 auto;
       padding: 3rem 1rem;
-    }
-
-    .income-header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 1rem;
     }
 
     h1 {
@@ -248,9 +230,7 @@ function formatMonth(isoDate: string): string {
   `,
 })
 export class Income {
-  protected readonly auth = inject(Auth);
   private readonly api = inject(IncomeApi);
-  private readonly router = inject(Router);
   private readonly connectivity = inject(Connectivity);
 
   protected readonly offline = computed(() => !this.connectivity.online());
@@ -309,11 +289,6 @@ export class Income {
 
   protected async remove(id: number): Promise<void> {
     await this.run(() => this.api.remove(id));
-  }
-
-  protected async signOut(): Promise<void> {
-    await this.auth.signOut();
-    await this.router.navigateByUrl('/anmelden');
   }
 
   private async run(action: () => Promise<void>): Promise<void> {
