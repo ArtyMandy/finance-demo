@@ -47,3 +47,15 @@ h1 {
   outline: 3px solid var(--color-text);
   outline-offset: 3px;
 }
+
+button.button {
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
