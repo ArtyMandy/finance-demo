@@ -1,5 +1,10 @@
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
+## Skills and Tooling
+
+- Before writing or changing any Angular code (components, services, routing, forms, tests), load the `angular-developer` skill.
+- When the angular-cli MCP server is available, call `list_projects` and `get_best_practices` before writing code.
+
 ## TypeScript Best Practices
 
 - Use strict type checking
