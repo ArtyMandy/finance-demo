@@ -1,9 +1,13 @@
 import { Component, computed, inject, resource, signal } from '@angular/core';
-import { form, FormField, min, pattern, required, submit } from '@angular/forms/signals';
+import { form, FormField, min, pattern, required, submit, validate } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
 import { Connectivity } from '../core/connectivity';
 import { IncomeApi } from './income-api';
+import { monthsBetween } from './month-range';
+
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+const MAX_MONTHS = 120;
 
 const currency = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
 const monthName = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -28,10 +32,18 @@ function formatMonth(isoDate: string): string {
 
       <form class="income-form" novalidate (submit)="onSubmit(); $event.preventDefault()">
         <label>
-          Monat
-          <input type="month" placeholder="JJJJ-MM" [formField]="incomeForm.month" />
-          @if (incomeForm.month().touched() && incomeForm.month().errors().length) {
-            <span class="field-error">{{ incomeForm.month().errors()[0].message }}</span>
+          Von (Monat)
+          <input type="month" placeholder="JJJJ-MM" [formField]="incomeForm.from" />
+          @if (incomeForm.from().touched() && incomeForm.from().errors().length) {
+            <span class="field-error">{{ incomeForm.from().errors()[0].message }}</span>
+          }
+        </label>
+
+        <label>
+          Bis (Monat, optional)
+          <input type="month" placeholder="JJJJ-MM" [formField]="incomeForm.to" />
+          @if (incomeForm.to().touched() && incomeForm.to().errors().length) {
+            <span class="field-error">{{ incomeForm.to().errors()[0].message }}</span>
           }
         </label>
 
@@ -45,7 +57,10 @@ function formatMonth(isoDate: string): string {
 
         <button type="submit" class="button" [disabled]="busy() || offline()">Speichern</button>
       </form>
-      <p class="hint">Gibt es für den Monat schon einen Eintrag, wird er überschrieben.</p>
+      <p class="hint">
+        Gleichbleibendes Einkommen für mehrere Monate: „Von“ und „Bis“ wählen. Bestehende Einträge im
+        Zeitraum werden überschrieben.
+      </p>
       @if (offline()) {
         <p class="hint">
           Du bist offline. Speichern, Löschen und Abmelden gehen wieder, sobald du online bist.
@@ -55,6 +70,9 @@ function formatMonth(isoDate: string): string {
       <div aria-live="polite">
         @if (message(); as text) {
           <p class="field-error">{{ text }}</p>
+        }
+        @if (success(); as text) {
+          <p class="success">{{ text }}</p>
         }
       </div>
 
@@ -172,6 +190,11 @@ function formatMonth(isoDate: string): string {
       font-weight: 400;
     }
 
+    .success {
+      margin: 0;
+      color: #166534;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -250,21 +273,36 @@ export class Income {
     ),
   );
 
-  protected readonly model = signal({ month: '', amount: 0 });
+  protected readonly success = signal('');
+
+  protected readonly model = signal({ from: '', to: '', amount: 0 });
 
   protected readonly incomeForm = form(this.model, (s) => {
-    required(s.month, { message: 'Bitte wähle einen Monat.' });
-    pattern(s.month, /^\d{4}-(0[1-9]|1[0-2])$/, { message: 'Bitte im Format JJJJ-MM eingeben.' });
+    required(s.from, { message: 'Bitte wähle einen Monat.' });
+    pattern(s.from, MONTH_PATTERN, { message: 'Bitte im Format JJJJ-MM eingeben.' });
+    pattern(s.to, MONTH_PATTERN, { message: 'Bitte im Format JJJJ-MM eingeben.' });
+    validate(s.to, ({ value, valueOf }) => {
+      const from = valueOf(s.from);
+      if (!value() || !MONTH_PATTERN.test(value()) || !MONTH_PATTERN.test(from)) return undefined;
+      const count = monthsBetween(from, value()).length;
+      if (count === 0) return { kind: 'beforeFrom', message: '„Bis“ darf nicht vor „Von“ liegen.' };
+      if (count > MAX_MONTHS) {
+        return { kind: 'tooLong', message: `Höchstens ${MAX_MONTHS} Monate auf einmal.` };
+      }
+      return undefined;
+    });
     required(s.amount, { message: 'Bitte gib einen Betrag ein.' });
     min(s.amount, 0, { message: 'Der Betrag darf nicht negativ sein.' });
   });
 
   protected onSubmit(): void {
     submit(this.incomeForm, async () => {
-      const { month, amount } = this.model();
+      const { from, to, amount } = this.model();
+      const months = monthsBetween(from, to || from);
       await this.run(async () => {
-        await this.api.save(month, amount);
-        this.incomeForm().reset({ month: '', amount: 0 });
+        await this.api.saveMany(months, amount);
+        this.incomeForm().reset({ from: '', to: '', amount: 0 });
+        this.success.set(months.length === 1 ? '1 Monat gespeichert.' : `${months.length} Monate gespeichert.`);
       });
     });
   }
@@ -281,6 +319,7 @@ export class Income {
   private async run(action: () => Promise<void>): Promise<void> {
     this.busy.set(true);
     this.message.set('');
+    this.success.set('');
     try {
       await action();
       this.incomes.reload();

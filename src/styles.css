@@ -43,6 +43,18 @@ h1 {
   background: var(--color-primary-hover);
 }
 
+.button-secondary {
+  border: 2px solid var(--color-primary);
+  padding: calc(0.75rem - 2px) calc(1.5rem - 2px);
+  background: #fff;
+  color: var(--color-primary);
+}
+
+.button-secondary:hover {
+  background: #f0fdfa;
+  color: var(--color-primary-hover);
+}
+
 .button:focus-visible {
   outline: 3px solid var(--color-text);
   outline-offset: 3px;

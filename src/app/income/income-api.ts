@@ -21,11 +21,12 @@ export class IncomeApi {
     return data;
   }
 
-  /** Creates or replaces the income for a month given as YYYY-MM. */
-  async save(month: string, amount: number): Promise<void> {
-    const { error } = await this.supabase
-      .from('monthly_income')
-      .upsert({ month: `${month}-01`, amount }, { onConflict: 'user_id,month' });
+  /** Creates or replaces the same income for every month given as YYYY-MM. */
+  async saveMany(months: string[], amount: number): Promise<void> {
+    const { error } = await this.supabase.from('monthly_income').upsert(
+      months.map((month) => ({ month: `${month}-01`, amount })),
+      { onConflict: 'user_id,month' },
+    );
     if (error) throw error;
   }
 

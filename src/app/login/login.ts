@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { email, form, FormField, minLength, required, submit } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
 import { Connectivity } from '../core/connectivity';
 
@@ -123,7 +123,9 @@ export class Login {
   private readonly connectivity = inject(Connectivity);
 
   protected readonly offline = computed(() => !this.connectivity.online());
-  protected readonly mode = signal<Mode>('signIn');
+  protected readonly mode = signal<Mode>(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('modus') === 'registrieren' ? 'signUp' : 'signIn',
+  );
   protected readonly busy = signal(false);
   protected readonly message = signal('');
 
