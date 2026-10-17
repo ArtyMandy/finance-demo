@@ -10,6 +10,7 @@ import { RouterLink } from '@angular/router';
       <img ngSrc="logo.svg" width="96" height="96" alt="" priority />
       <h1>Finance-Demo</h1>
       <a routerLink="/uebersicht" class="button">Zur Übersicht</a>
+      <a routerLink="/einkommen" class="button">Einkommen erfassen</a>
     </main>
   `,
 })
