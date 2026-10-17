@@ -2,6 +2,7 @@ import { Component, computed, inject, resource, signal } from '@angular/core';
 import { form, FormField, min, pattern, required, submit } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
+import { Connectivity } from '../core/connectivity';
 import { IncomeApi } from './income-api';
 
 const currency = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
@@ -19,7 +20,9 @@ function formatMonth(isoDate: string): string {
     <main class="income">
       <header class="income-header">
         <h1>Monatliches Einkommen</h1>
-        <button type="button" class="link-button" (click)="signOut()">Abmelden</button>
+        <button type="button" class="link-button" [disabled]="offline()" (click)="signOut()">
+          Abmelden
+        </button>
       </header>
       <p class="hint">Angemeldet als {{ auth.user()?.email }}</p>
 
@@ -40,9 +43,14 @@ function formatMonth(isoDate: string): string {
           }
         </label>
 
-        <button type="submit" class="button" [disabled]="busy()">Speichern</button>
+        <button type="submit" class="button" [disabled]="busy() || offline()">Speichern</button>
       </form>
       <p class="hint">Gibt es für den Monat schon einen Eintrag, wird er überschrieben.</p>
+      @if (offline()) {
+        <p class="hint">
+          Du bist offline. Speichern, Löschen und Abmelden gehen wieder, sobald du online bist.
+        </p>
+      }
 
       <div aria-live="polite">
         @if (message(); as text) {
@@ -53,7 +61,9 @@ function formatMonth(isoDate: string): string {
       <section aria-labelledby="list-heading">
         <h2 id="list-heading">Deine Einträge</h2>
         @if (incomes.error()) {
-          <p class="field-error">Die Einträge konnten nicht geladen werden.</p>
+          <p class="field-error">
+            Die Einträge konnten nicht geladen werden.{{ offline() ? ' Du bist offline.' : '' }}
+          </p>
         } @else if (incomes.hasValue()) {
           @if (rows().length) {
             <table>
@@ -73,6 +83,7 @@ function formatMonth(isoDate: string): string {
                       <button
                         type="button"
                         class="link-button"
+                        [disabled]="busy() || offline()"
                         [attr.aria-label]="'Eintrag ' + row.monthLabel + ' löschen'"
                         (click)="remove(row.id)"
                       >
@@ -194,6 +205,11 @@ function formatMonth(isoDate: string): string {
       cursor: pointer;
     }
 
+    .link-button:disabled {
+      color: #475569;
+      cursor: not-allowed;
+    }
+
     a {
       color: var(--color-primary);
     }
@@ -212,7 +228,9 @@ export class Income {
   protected readonly auth = inject(Auth);
   private readonly api = inject(IncomeApi);
   private readonly router = inject(Router);
+  private readonly connectivity = inject(Connectivity);
 
+  protected readonly offline = computed(() => !this.connectivity.online());
   protected readonly busy = signal(false);
   protected readonly message = signal('');
 

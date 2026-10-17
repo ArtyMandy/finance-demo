@@ -1,9 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { StatusBar } from './core/status-bar';
 
 @Component({
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, StatusBar],
   selector: 'app-root',
-  template: `<router-outlet />`,
+  template: `
+    <app-status-bar />
+    <router-outlet />
+  `,
 })
 export class App {}

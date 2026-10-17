@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { email, form, FormField, minLength, required, submit } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
+import { Connectivity } from '../core/connectivity';
 
 type Mode = 'signIn' | 'signUp';
 
@@ -39,10 +40,15 @@ const ERROR_MESSAGES: Record<string, string> = {
           }
         </label>
 
-        <button type="submit" class="button" [disabled]="busy()">
+        <button type="submit" class="button" [disabled]="busy() || offline()">
           {{ mode() === 'signIn' ? 'Anmelden' : 'Konto erstellen' }}
         </button>
       </form>
+      @if (offline()) {
+        <p class="message">
+          Du bist offline. Anmelden und Registrieren gehen wieder, sobald du online bist.
+        </p>
+      }
 
       <div aria-live="polite">
         @if (message(); as text) {
@@ -114,7 +120,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 export class Login {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
+  private readonly connectivity = inject(Connectivity);
 
+  protected readonly offline = computed(() => !this.connectivity.online());
   protected readonly mode = signal<Mode>('signIn');
   protected readonly busy = signal(false);
   protected readonly message = signal('');
