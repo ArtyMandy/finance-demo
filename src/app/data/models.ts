@@ -6,7 +6,7 @@ export type IsoDate = string;
 
 export type AccountType = 'giro' | 'kreditkarte' | 'tagesgeld' | 'depot' | 'sachwert' | 'kredit';
 
-/** Cash accounts carry bookings; the other types are tracked by valuations. */
+/** Cash accounts can hold bookings (to find recurring income and expenses). */
 export const CASH_ACCOUNT_TYPES: readonly AccountType[] = ['giro', 'kreditkarte', 'tagesgeld'];
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
@@ -28,12 +28,13 @@ export interface Account {
   name: string;
   type: AccountType;
   institution: string;
-  /** Balance before the first booking (cash accounts). */
+  /** Balance used before the first valuation (older data). */
   openingBalance: number;
-  /** Value history for depots, assets and loans (loans as positive debt). */
+  /** Balance or value history entered by the user (loans as positive debt). */
   valuations: Valuation[];
 }
 
+/** A booking; only used to find recurring income and expenses, not for statistics or balances. */
 export interface Transaction {
   id: string;
   accountId: string;

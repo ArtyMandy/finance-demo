@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Clock } from '../core/clock';
-import { FinanceStore } from './finance-store';
+import { FinanceStore, normalizeData } from './finance-store';
 import { parseIngCsv } from './ing-csv';
 import { RecurringItem } from './models';
 
@@ -78,6 +78,35 @@ describe('FinanceStore', () => {
     expect(updated.categoryId).toBe('restaurant');
     expect(store.data().categoryRules).toEqual([
       { pattern: 'bäckerei schmidt', categoryId: 'restaurant' },
+    ]);
+  });
+
+  it('takes over a detected income as income source', () => {
+    store.acceptSuggestion({
+      key: '+muster gmbh',
+      kind: 'income',
+      name: 'Muster Gmbh',
+      amount: 3000,
+      rhythm: 'monthly',
+      categoryId: 'einkommen',
+      firstMonth: '2026-08',
+      count: 3,
+    });
+    expect(store.data().recurring[0]).toMatchObject({ kind: 'income', amount: 3000, provider: '' });
+  });
+
+  it('turns booking-based balances of older data into monthly values once', () => {
+    const migrated = normalizeData({
+      accounts: [{ ...store.data().accounts[0], openingBalance: 100, valuations: undefined }],
+      transactions: [
+        { accountId: 'giro', date: '2026-09-02', amount: 50 },
+        { accountId: 'giro', date: '2026-09-20', amount: -20 },
+        { accountId: 'giro', date: '2026-10-01', amount: 10 },
+      ],
+    });
+    expect(migrated.accounts[0].valuations).toEqual([
+      { date: '2026-09-20', value: 130 },
+      { date: '2026-10-01', value: 140 },
     ]);
   });
 

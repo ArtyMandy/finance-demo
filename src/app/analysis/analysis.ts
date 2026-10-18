@@ -15,7 +15,7 @@ import { MonthBars } from '../shared/month-bars';
     <main id="inhalt" class="page">
       <div class="page-head">
         <div>
-          <span class="eyebrow">Einnahmen und Ausgaben aus deinen Buchungen</span>
+          <span class="eyebrow">Aus deinen Einnahmen und Ausgaben</span>
           <h1>Auswertung</h1>
         </div>
         <div class="form selectors">
@@ -113,10 +113,14 @@ export class Analysis {
   }));
   protected readonly selection = form(this.model);
 
+  /** From the first defined income or expense up to the current year. */
   protected readonly years = computed(() => {
-    const years = new Set(this.store.data().transactions.map((tx) => tx.date.slice(0, 4)));
-    years.add(String(this.clock.year()));
-    return [...years].sort().reverse();
+    const current = this.clock.year();
+    const first = Math.min(
+      current,
+      ...this.store.data().recurring.map((item) => Number(item.from.slice(0, 4))),
+    );
+    return Array.from({ length: current - first + 1 }, (_, index) => String(current - index));
   });
 
   private readonly yearMonths = computed(() =>

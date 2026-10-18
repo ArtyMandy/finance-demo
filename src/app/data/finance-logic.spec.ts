@@ -1,4 +1,10 @@
-import { accountBalance, monthPreview, monthTotals, wealthBreakdown } from './analytics';
+import {
+  accountBalance,
+  dueItems,
+  monthTotals,
+  spendingByCategory,
+  wealthBreakdown,
+} from './analytics';
 import { categorize } from './categories';
 import { detectContracts, duplicateSubscriptions, upcomingDeadlines } from './insights';
 import { emptyFinanceData, FinanceData, RecurringItem, Transaction } from './models';
@@ -116,7 +122,7 @@ describe('analytics', () => {
         type: 'giro',
         institution: '',
         openingBalance: 1000,
-        valuations: [],
+        valuations: [{ date: '2026-09-30', value: 2500 }],
       },
       {
         id: 'depot',
@@ -147,8 +153,9 @@ describe('analytics', () => {
     ],
   });
 
-  it('computes balances and net worth with loans as debt', () => {
+  it('takes balances from entered values, not from bookings, with loans as debt', () => {
     expect(accountBalance(finance, finance.accounts[0])).toBe(2500);
+    expect(accountBalance(finance, finance.accounts[0], '2026-09-01')).toBe(1000);
     expect(wealthBreakdown(finance)).toMatchObject({
       cash: 2500,
       investments: 5000,
@@ -157,14 +164,21 @@ describe('analytics', () => {
     });
   });
 
-  it('leaves transfers out of income and spending', () => {
-    expect(monthTotals(finance, '2026-10')).toEqual({ income: 3000, expenses: 1000 });
+  it('computes income and expenses from the defined items, ignoring bookings', () => {
+    expect(monthTotals(finance, '2026-10')).toEqual({ income: 3000, expenses: 1030 });
+    expect(monthTotals(finance, '2025-12')).toEqual({ income: 0, expenses: 0 });
+    expect(spendingByCategory(finance, '2026-10')).toEqual([
+      { categoryId: 'wohnen', amount: 1000 },
+      { categoryId: 'sonstiges', amount: 30 },
+    ]);
   });
 
-  it('shows planned items without a matching booking as pending', () => {
-    const preview = monthPreview(finance, '2026-10');
-    expect(preview.pending.map((p) => p.item.name)).toEqual(['Handy']);
-    expect(preview.leftover).toBe(3000 - 1000 - 30);
+  it('lists the items due in a month, income first', () => {
+    expect(dueItems(finance, '2026-10').map((entry) => entry.item.name)).toEqual([
+      'Gehalt',
+      'Miete',
+      'Handy',
+    ]);
   });
 });
 
@@ -176,10 +190,24 @@ describe('insights', () => {
     const suggestions = detectContracts(data({ transactions }));
     expect(suggestions).toHaveLength(1);
     expect(suggestions[0]).toMatchObject({
+      kind: 'expense',
       rhythm: 'monthly',
       amount: 12.99,
       firstMonth: '2026-07',
     });
+  });
+
+  it('detects recurring income unless an income with that amount is defined', () => {
+    const transactions = ['2026-08-01', '2026-09-01', '2026-10-01'].map((date) =>
+      tx({ date, amount: 3000, counterparty: 'Muster GmbH', categoryId: 'einkommen' }),
+    );
+    expect(detectContracts(data({ transactions }))[0]).toMatchObject({
+      key: '+muster gmbh',
+      kind: 'income',
+      amount: 3000,
+    });
+    const recurring = [item({ name: 'Gehalt', kind: 'income', amount: 3000 })];
+    expect(detectContracts(data({ transactions, recurring }))).toEqual([]);
   });
 
   it('ignores irregular amounts, transfers and dismissed suggestions', () => {

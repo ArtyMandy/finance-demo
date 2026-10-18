@@ -9,6 +9,12 @@
     </button>
   </div>
 
+  <p class="meta">
+    Buchungen dienen nur dazu, wiederkehrende Einnahmen und Ausgaben zu erkennen. Sie fließen weder
+    in Statistiken noch in Kontostände ein. Erkannte Posten übernimmst du unter
+    <a routerLink="/einnahmen">Einnahmen &amp; Fixkosten</a>.
+  </p>
+
   <app-csv-import [accounts]="cashAccounts()" />
 
   <section class="card" aria-labelledby="list-heading">

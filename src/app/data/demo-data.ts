@@ -21,7 +21,10 @@ function random(seed: number) {
 const day = (month: Month, dayOfMonth: number): IsoDate =>
   `${month}-${String(Math.min(dayOfMonth, daysInMonth(month))).padStart(2, '0')}`;
 
-/** Sample data for trying the app: twelve months of bookings, contracts, goals and a depot. */
+/**
+ * Sample data for trying the app: income and expenses, twelve months of bookings (the Deutsche
+ * Bahn ticket is left undefined, so it shows up as a detected payment), goals and a depot.
+ */
 export function createDemoData(today: IsoDate): FinanceData {
   const month = today.slice(0, 7);
   const rand = random(42);
@@ -174,6 +177,19 @@ export function createDemoData(today: IsoDate): FinanceData {
       },
       'car-insurance',
     ),
+    recurring(
+      { kind: 'expense', name: 'Lebensmittel & Drogerie', amount: 380, categoryId: 'lebensmittel' },
+      'groceries',
+    ),
+    recurring({ kind: 'expense', name: 'Tanken', amount: 60, categoryId: 'mobilitaet' }, 'fuel'),
+    recurring(
+      { kind: 'expense', name: 'Essen bestellen', amount: 75, categoryId: 'restaurant' },
+      'delivery',
+    ),
+    recurring(
+      { kind: 'expense', name: 'Online-Shopping', amount: 90, categoryId: 'shopping' },
+      'shopping',
+    ),
   ];
 
   const transactions: Transaction[] = [];
@@ -220,8 +236,6 @@ export function createDemoData(today: IsoDate): FinanceData {
     add(day(m, 22), -(30 + rand() * 90), 'Amazon', 'Bestellung');
     add(day(m, 23), -(15 + rand() * 30), 'Cinemaxx', 'Kino');
   }
-  // A larger purchase two weeks ago for the "unusual expense" hint.
-  add(day(month, Math.max(1, Number(today.slice(8, 10)) - 3)), -429, 'MediaMarkt', 'Waschmaschine');
   const yearlyMonth = addMonths(month, -9);
   add(day(yearlyMonth, 10), -64.8, 'HUK-Coburg Versicherung', 'Haftpflicht');
   for (const offset of [-11, -8, -5, -2])
@@ -245,16 +259,22 @@ export function createDemoData(today: IsoDate): FinanceData {
         name: 'Girokonto',
         type: 'giro',
         institution: 'ING',
-        openingBalance: 2100,
-        valuations: [],
+        openingBalance: 0,
+        valuations: months.map((m, index) => ({
+          date: m === month ? today : day(m, 28),
+          value: 2100 + Math.round(rand() * 900) + index * 15,
+        })),
       },
       {
         id: 'tagesgeld',
         name: 'Tagesgeld',
         type: 'tagesgeld',
         institution: 'ING',
-        openingBalance: 5200,
-        valuations: [],
+        openingBalance: 0,
+        valuations: months.map((m, index) => ({
+          date: m === month ? today : day(m, 28),
+          value: 5200 + (m === month ? index : index + 1) * 300,
+        })),
       },
       {
         id: 'depot',
@@ -308,6 +328,7 @@ export function createDemoData(today: IsoDate): FinanceData {
       { categoryId: 'lebensmittel', limit: 400 },
       { categoryId: 'restaurant', limit: 60 },
       { categoryId: 'shopping', limit: 150 },
+      { categoryId: 'mobilitaet', limit: 120 },
     ],
     goals: [
       {

@@ -42,9 +42,7 @@
               <span class="meta">
                 {{ typeLabel(row.account.type)
                 }}{{ row.account.institution ? ' · ' + row.account.institution : '' }}
-                @if (row.cash) {
-                  · {{ row.bookings }} Buchungen
-                } @else if (row.fromHoldings) {
+                @if (row.fromHoldings) {
                   · Wert aus Depotpositionen
                 } @else if (row.lastValuation) {
                   · Stand {{ date(row.lastValuation) }}
@@ -108,13 +106,17 @@
         <label class="field">
           {{
             isCashType()
-              ? 'Anfangssaldo vor der ersten Buchung (€)'
+              ? 'Aktueller Kontostand (€)'
               : model().type === 'kredit'
                 ? 'Offene Restschuld heute (€)'
                 : 'Aktueller Wert (€)'
           }}
           <input type="number" inputmode="decimal" step="0.01" [formField]="accountForm.amount" />
-          @if (model().type === 'depot') {
+          @if (isCashType()) {
+            <span class="field-hint"
+              >Buchungen ändern den Kontostand nicht. Trage ihn hier ein, wenn er sich ändert.</span
+            >
+          } @else if (model().type === 'depot') {
             <span class="field-hint"
               >Mit Depotpositionen unter „Anlage“ wird der Wert automatisch berechnet.</span
             >

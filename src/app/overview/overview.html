@@ -19,7 +19,10 @@
           <a routerLink="/einnahmen">Einnahmen und Fixkosten erfassen</a> – mit Rhythmus und
           Zeitraum
         </li>
-        <li><a routerLink="/buchungen">Buchungen eintragen oder ING-CSV importieren</a></li>
+        <li>
+          <a routerLink="/buchungen">ING-CSV importieren</a> – erkennt wiederkehrende Einnahmen und
+          Ausgaben
+        </li>
         <li><a routerLink="/ziele">Sparziele festlegen</a></li>
       </ol>
       <div class="row">
@@ -59,44 +62,40 @@
       <div class="grid-stats grid-3">
         <div class="stat">
           <span class="label">Einnahmen</span>
-          <span class="stat-value">{{ eur(income()) }}</span>
+          <span class="stat-value">{{ eur(totals().income) }}</span>
         </div>
         <div class="stat">
           <span class="label">Ausgaben</span>
-          <span class="stat-value">{{ eur(preview().expensesActual) }}</span>
+          <span class="stat-value">{{ eur(totals().expenses) }}</span>
         </div>
         <div class="stat">
-          <span class="label">Übrig (voraussichtlich)</span>
+          <span class="label">Übrig</span>
           <span
             class="stat-value"
-            [class.positive]="preview().leftover >= 0"
-            [class.negative]="preview().leftover < 0"
+            [class.positive]="leftover() >= 0"
+            [class.negative]="leftover() < 0"
           >
-            {{ eur(preview().leftover) }}
+            {{ eur(leftover()) }}
           </span>
         </div>
       </div>
       <div class="bar" aria-hidden="true">
-        <span class="bar-dark" [style.width.%]="spentShare()"></span>
-        <span class="bar-planned" [style.width.%]="plannedShare()"></span>
+        <span class="bar-dark" [style.width.%]="expenseShare()"></span>
       </div>
       <p class="legend meta">
-        <span><i class="sw-spent"></i>ausgegeben</span>
-        <span class="savings-text"
-          ><i class="sw-planned"></i>noch geplant {{ eur(preview().expensesPending) }}</span
-        >
+        <span><i class="sw-expenses"></i>Ausgaben im Verhältnis zu den Einnahmen</span>
         <span>Sparquote {{ pct(savingsRate()) }}</span>
       </p>
     </section>
 
-    <section class="card" aria-labelledby="preview-heading">
+    <section class="card" aria-labelledby="due-heading">
       <div class="spread">
-        <h2 id="preview-heading">Steht noch an</h2>
+        <h2 id="due-heading">Fällig in diesem Monat</h2>
         <a routerLink="/einnahmen" class="meta">Bearbeiten</a>
       </div>
-      @if (preview().pending.length) {
+      @if (due().length) {
         <ul class="list">
-          @for (entry of preview().pending; track entry.item.id) {
+          @for (entry of due(); track entry.item.id) {
             <li>
               <span class="list-main">
                 <span class="list-title">{{ entry.item.name }}</span>
@@ -110,8 +109,14 @@
             </li>
           }
         </ul>
+        @if (moreDue()) {
+          <a routerLink="/einnahmen" class="meta">und {{ moreDue() }} weitere</a>
+        }
       } @else {
-        <p class="empty">Für diesen Monat steht nichts mehr an.</p>
+        <p class="empty">
+          Für diesen Monat sind keine Einnahmen oder Ausgaben erfasst.
+          <a routerLink="/einnahmen">Jetzt erfassen</a>
+        </p>
       }
     </section>
 

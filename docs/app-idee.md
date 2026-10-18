@@ -25,15 +25,16 @@
 ### Kernfunktionen (Must-have)
 
 **Überblick & Transparenz**
-- **Konten & Buchungen erfassen:** Girokonten, Kreditkarten, Tagesgeld und Depots als eigene Konten anlegen; Buchungen manuell eintragen oder per CSV-Datei aus dem Umsatzexport der ING importieren, ohne Bankverbindung. Beim Import werden doppelte Buchungen erkannt und übersprungen.
+- **Konten erfassen:** Girokonten, Kreditkarten, Tagesgeld und Depots als eigene Konten mit aktuellem Kontostand bzw. Wert anlegen, ohne Bankverbindung.
+- **Buchungen erfassen:** Buchungen manuell eintragen oder per CSV-Datei aus dem Umsatzexport der ING importieren. Beim Import werden doppelte Buchungen erkannt und übersprungen. Buchungen dienen **nur** dazu, wiederkehrende Einnahmen und Ausgaben zu erkennen; sie fließen weder in Statistiken noch in Kontostände ein.
 - **Einnahmen definieren:** Einnahmequellen (z. B. Gehalt, Nebenjob, Kindergeld) mit Nettobetrag und Rhythmus anlegen: einmalig, monatlich, quartalsweise oder jährlich. Jede Einnahme gilt **ab Monat** und optional **bis Monat** (leer = unbefristet). Ändert sich ein Betrag, z. B. durch eine Gehaltserhöhung, beginnt ab dem neuen Monat ein neuer Zeitraum, die Historie bleibt erhalten. Feste Ausgaben funktionieren nach demselben Prinzip.
-- **Automatische Kategorisierung:** Buchungen werden Kategorien zugeordnet (Wohnen, Lebensmittel, Mobilität …), manuell korrigierbar.
-- **Einnahmen-/Ausgaben-Analyse:** Monats- und Jahresauswertungen, Verlauf, Vergleich zum Vormonat.
+- **Automatische Kategorisierung:** Buchungen werden Kategorien zugeordnet (Wohnen, Lebensmittel, Mobilität …), manuell korrigierbar; erkannte Einnahmen und Ausgaben übernehmen die Kategorie.
+- **Einnahmen-/Ausgaben-Analyse:** Monats- und Jahresauswertungen, Verlauf, Vergleich zum Vormonat. Alle Statistiken (Übersicht, Budgets, Auswertung) beruhen ausschließlich auf den definierten Einnahmen & Ausgaben und den Konten.
 - **Vermögensübersicht:** Gesamtvermögen (Konten, Depots, Sachwerte) minus Schulden, mit Entwicklung über die Zeit.
-- **Vorschau:** Welche Buchungen in diesem Monat noch anstehen und was voraussichtlich übrig bleibt.
+- **Vorschau:** Welche Einnahmen und Ausgaben in diesem Monat fällig sind und was übrig bleibt.
 
 **Sparpotenzial**
-- **Vertrags- & Abo-Erkennung:** Wiederkehrende Zahlungen automatisch erkennen und in einem Vertragsordner sammeln.
+- **Vertrags- & Abo-Erkennung:** Wiederkehrende Einnahmen und Zahlungen in den Buchungen automatisch erkennen; übernommene Ausgaben landen im Vertragsordner.
 - **Kündigungs-Assistent:** Erinnerung an Kündigungsfristen, Kündigungsschreiben direkt aus der App.
 - **Sparhinweise:** Auffälligkeiten erkennen (z. B. doppelte Abos, steigende Kategorien, ungewöhnlich hohe Ausgaben).
 
