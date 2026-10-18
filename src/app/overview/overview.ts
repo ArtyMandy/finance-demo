@@ -2,7 +2,8 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Clock } from '../core/clock';
 import {
-  monthPreview,
+  dueItems,
+  monthTotals,
   spendingByCategory,
   wealthBreakdown,
   wealthHistory,
@@ -21,6 +22,8 @@ import {
 } from '../shared/format';
 import { LineChart } from '../shared/line-chart';
 import { Sparkline } from '../shared/sparkline';
+
+const DUE_LIMIT = 6;
 
 @Component({
   imports: [CategoryBars, LineChart, RouterLink, Sparkline],
@@ -48,11 +51,8 @@ import { Sparkline } from '../shared/sparkline';
       margin-right: 0.375rem;
       border-radius: 2px;
     }
-    .sw-spent {
+    .sw-expenses {
       background: var(--color-text);
-    }
-    .sw-planned {
-      background: var(--chart-expense);
     }
     .onboarding ol {
       display: flex;
@@ -100,15 +100,18 @@ export class Overview {
     return before ? (history.at(-1)! - before) / Math.abs(before) : 0;
   });
 
-  protected readonly preview = computed(() => monthPreview(this.store.data(), this.clock.month()));
-  protected readonly income = computed(
-    () => this.preview().incomeActual + this.preview().incomePending,
-  );
-  protected readonly spentShare = computed(() => this.share(this.preview().expensesActual));
-  protected readonly plannedShare = computed(() => this.share(this.preview().expensesPending));
+  protected readonly totals = computed(() => monthTotals(this.store.data(), this.clock.month()));
+  protected readonly leftover = computed(() => this.totals().income - this.totals().expenses);
+  private readonly allDue = computed(() => dueItems(this.store.data(), this.clock.month()));
+  protected readonly due = computed(() => this.allDue().slice(0, DUE_LIMIT));
+  protected readonly moreDue = computed(() => this.allDue().length - this.due().length);
+  protected readonly expenseShare = computed(() => {
+    const { income, expenses } = this.totals();
+    return Math.min(100, (expenses / Math.max(income, expenses, 1)) * 100);
+  });
   protected readonly savingsRate = computed(() => {
-    const income = this.income();
-    return income > 0 ? Math.max(0, this.preview().leftover) / income : 0;
+    const income = this.totals().income;
+    return income > 0 ? Math.max(0, this.leftover()) / income : 0;
   });
 
   protected readonly categories = computed(() =>
@@ -121,15 +124,6 @@ export class Overview {
   protected readonly eur = formatEuroRounded;
   protected readonly pct = formatPercent;
   protected readonly signedPct = formatSignedPercent;
-
-  private share(value: number): number {
-    const base = Math.max(
-      this.income(),
-      this.preview().expensesActual + this.preview().expensesPending,
-      1,
-    );
-    return Math.min(100, (value / base) * 100);
-  }
 
   protected loadDemo(): void {
     this.store.replace(createDemoData(this.clock.today()));

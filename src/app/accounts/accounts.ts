@@ -29,7 +29,6 @@ export class Accounts {
       account,
       cash: isCash(account),
       balance: accountBalance(data, account),
-      bookings: data.transactions.filter((tx) => tx.accountId === account.id).length,
       fromHoldings: account.type === 'depot' && holdingsValue(data, account.id) !== undefined,
       lastValuation:
         [...account.valuations].sort((a, b) => a.date.localeCompare(b.date)).at(-1)?.date ?? '',
@@ -60,9 +59,7 @@ export class Accounts {
             name: account.name,
             type: account.type,
             institution: account.institution,
-            amount: isCash(account)
-              ? account.openingBalance
-              : Math.abs(accountBalance(data, account)),
+            amount: this.enteredValue(account, accountBalance(data, account)),
           }
         : { name: '', type: 'giro', institution: '', amount: 0 },
     );
@@ -74,22 +71,27 @@ export class Accounts {
       const value = this.model();
       const existing = this.editing();
       const type = value.type as AccountType;
-      const cash = CASH_TYPES.has(type);
       const account: Account = {
         id: existing?.id ?? newId(),
         name: value.name.trim(),
         type,
         institution: value.institution.trim(),
-        openingBalance: cash ? value.amount : 0,
+        openingBalance: existing?.openingBalance ?? 0,
         valuations: existing?.valuations ?? [],
       };
       this.store.save('accounts', account);
-      if (!cash) {
-        const current = existing ? Math.abs(accountBalance(this.store.data(), account)) : undefined;
-        if (current !== value.amount) this.store.setValuation(account.id, Math.abs(value.amount));
-      }
+      const amount = this.enteredValue(account, value.amount);
+      const current = existing
+        ? this.enteredValue(account, accountBalance(this.store.data(), account))
+        : undefined;
+      if (current !== amount) this.store.setValuation(account.id, amount);
       this.dialog().nativeElement.close();
     });
+  }
+
+  /** Cash balances can be negative (overdraft); other values are stored positive. */
+  private enteredValue(account: Account, value: number): number {
+    return isCash(account) ? value : Math.abs(value);
   }
 
   protected remove(): void {

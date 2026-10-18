@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { form, FormField, pattern, required, submit, validate } from '@angular/forms/signals';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Clock } from '../core/clock';
 import { isCash } from '../data/analytics';
 import { CATEGORIES, categoryName } from '../data/categories';
@@ -21,7 +21,7 @@ import { CsvImport } from './csv-import';
 const PAGE_SIZE = 100;
 
 @Component({
-  imports: [CsvImport, FormField],
+  imports: [CsvImport, FormField, RouterLink],
   selector: 'app-transactions',
   templateUrl: './transactions.html',
   styles: `

@@ -1,5 +1,6 @@
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { form, FormField, min, submit } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 import { Clock } from '../core/clock';
 import { spendingByCategory } from '../data/analytics';
 import { CATEGORIES } from '../data/categories';
@@ -15,7 +16,7 @@ const SPENDING_CATEGORIES = CATEGORIES.filter(
 type Status = 'none' | 'ok' | 'warning' | 'over';
 
 @Component({
-  imports: [FormField],
+  imports: [FormField, RouterLink],
   selector: 'app-budgets',
   template: `
     <main id="inhalt" class="page">
@@ -26,8 +27,9 @@ type Status = 'none' | 'ok' | 'warning' | 'over';
         </div>
       </div>
       <p class="meta">
-        Monatliche Limits pro Kategorie. Ab {{ warnPercent }} % erscheint eine Warnung, bei
-        Überschreitung zusätzlich ein Hinweis in der Übersicht.
+        Monatliche Limits pro Kategorie, verglichen mit den Ausgaben aus
+        <a routerLink="/einnahmen">Einnahmen &amp; Fixkosten</a>. Ab {{ warnPercent }} % erscheint
+        eine Warnung, bei Überschreitung zusätzlich ein Hinweis in der Übersicht.
       </p>
 
       <div class="grid-stats">
@@ -36,7 +38,7 @@ type Status = 'none' | 'ok' | 'warning' | 'over';
           <span class="stat-value">{{ eur(totalLimit()) }}</span>
         </div>
         <div class="card stat">
-          <span class="label">Davon ausgegeben</span>
+          <span class="label">Davon verplant</span>
           <span class="stat-value">{{ eur(totalSpentInBudgets()) }}</span>
         </div>
         <div class="card stat" [class.card-savings]="overCount() > 0">

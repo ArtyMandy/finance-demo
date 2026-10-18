@@ -35,37 +35,7 @@
     </p>
   }
 
-  @if (suggestions().length) {
-    <section class="card" aria-labelledby="detected-heading">
-      <h2 id="detected-heading">Wiederkehrende Zahlungen erkannt</h2>
-      <p class="meta">
-        Aus deinen Buchungen erkannt. Übernehmen legt sie als fixe Ausgabe im Vertragsordner an.
-      </p>
-      <ul class="list">
-        @for (suggestion of suggestions(); track suggestion.key) {
-          <li>
-            <span class="avatar" aria-hidden="true">{{ suggestion.name.charAt(0) }}</span>
-            <span class="list-main">
-              <span class="list-title">{{ suggestion.name }}</span>
-              <span class="meta"
-                >{{ suggestion.count }}× {{ rhythmLabel(suggestion.rhythm) }} ·
-                {{ category(suggestion.categoryId) }}</span
-              >
-            </span>
-            <span class="amount list-title">{{ eur(suggestion.amount) }}</span>
-            <span class="row">
-              <button type="button" class="btn btn-small" (click)="accept(suggestion)">
-                Übernehmen<span class="visually-hidden">: {{ suggestion.name }}</span>
-              </button>
-              <button type="button" class="btn btn-ghost btn-small" (click)="dismiss(suggestion)">
-                Ignorieren<span class="visually-hidden">: {{ suggestion.name }}</span>
-              </button>
-            </span>
-          </li>
-        }
-      </ul>
-    </section>
-  }
+  <app-recurring-suggestions kind="expense" />
 
   <section class="card" aria-labelledby="soon-heading">
     <h2 id="soon-heading">Bald kündbar</h2>

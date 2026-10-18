@@ -7,6 +7,7 @@ import { RecurringItem, RHYTHM_LABELS } from '../data/models';
 import { MONTH_PATTERN } from '../data/months';
 import { isActiveIn, monthlyEquivalent } from '../data/recurring';
 import { formatEuro, formatMonth } from '../shared/format';
+import { RecurringSuggestions } from '../shared/recurring-suggestions';
 import { RecurringForm } from './recurring-form';
 
 interface Series {
@@ -35,7 +36,7 @@ function toSeries(items: readonly RecurringItem[], month: string): Series[] {
 }
 
 @Component({
-  imports: [FormField, RecurringForm],
+  imports: [FormField, RecurringForm, RecurringSuggestions],
   selector: 'app-income',
   templateUrl: './income.html',
 })

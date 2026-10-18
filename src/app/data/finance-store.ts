@@ -5,6 +5,7 @@ import type { ParsedBooking } from './ing-csv';
 import type { ContractSuggestion } from './insights';
 import {
   Account,
+  CASH_ACCOUNT_TYPES,
   emptyFinanceData,
   FinanceData,
   Goal,
@@ -13,8 +14,9 @@ import {
   Profile,
   RecurringItem,
   Transaction,
+  Valuation,
 } from './models';
-import { addMonths } from './months';
+import { addMonths, monthOf } from './months';
 
 const STORAGE_KEY = 'finanz-demo:data:v1';
 const OWNER_KEY = 'finanz-demo:owner';
@@ -32,20 +34,47 @@ type ListItem<K extends ListKey> = FinanceData[K][number];
 
 export const newId = () => crypto.randomUUID();
 
+/**
+ * Older data derived cash balances from the bookings. Balances now come from entered values,
+ * so the booking history becomes one value per month (at its last booking) once.
+ */
+function valuationsFromBookings(account: Account, transactions: readonly Transaction[]) {
+  const bookings = transactions
+    .filter((tx) => tx.accountId === account.id)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const valuations: Valuation[] = [];
+  let balance = account.openingBalance;
+  bookings.forEach((tx, index) => {
+    balance += tx.amount;
+    const next = bookings[index + 1];
+    if (!next || monthOf(next.date) !== monthOf(tx.date)) {
+      valuations.push({ date: tx.date, value: Math.round(balance * 100) / 100 });
+    }
+  });
+  return valuations;
+}
+
 /** Fills in fields missing from older saved data. */
 export function normalizeData(raw: unknown): FinanceData {
   const base = emptyFinanceData();
   if (!raw || typeof raw !== 'object') return base;
   const data = raw as Partial<FinanceData>;
+  const transactions = data.transactions ?? [];
   return {
     ...base,
     ...data,
     version: 1,
     profile: { ...base.profile, ...data.profile },
-    accounts: (data.accounts ?? []).map((account) => ({
-      ...account,
-      valuations: account.valuations ?? [],
-    })),
+    accounts: (data.accounts ?? []).map((account) => {
+      const valuations = account.valuations ?? [];
+      return {
+        ...account,
+        valuations:
+          !valuations.length && CASH_ACCOUNT_TYPES.includes(account.type)
+            ? valuationsFromBookings(account, transactions)
+            : valuations,
+      };
+    }),
   };
 }
 
@@ -176,7 +205,7 @@ export class FinanceStore {
     });
   }
 
-  /** Records today's value of a depot, asset or loan (one value per day). */
+  /** Records today's balance or value of an account (one value per day). */
   setValuation(accountId: string, value: number): void {
     const date = this.clock.today();
     this.change((data) => ({
@@ -319,14 +348,14 @@ export class FinanceStore {
     this.save('recurring', {
       id: newId(),
       seriesId: newId(),
-      kind: 'expense',
+      kind: suggestion.kind,
       name: suggestion.name,
       amount: suggestion.amount,
       rhythm: suggestion.rhythm,
       from: suggestion.firstMonth,
       to: '',
       categoryId: suggestion.categoryId,
-      provider: suggestion.name,
+      provider: suggestion.kind === 'expense' ? suggestion.name : '',
       customerNumber: '',
       cancelBy: '',
       monthlyCancelable: false,

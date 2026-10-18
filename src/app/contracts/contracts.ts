@@ -11,24 +11,20 @@ import { RouterLink } from '@angular/router';
 import { Clock } from '../core/clock';
 import { categoryName } from '../data/categories';
 import { FinanceStore } from '../data/finance-store';
-import {
-  ContractSuggestion,
-  detectContracts,
-  duplicateSubscriptions,
-  savingsPotentialPerMonth,
-} from '../data/insights';
-import { RecurringItem, Rhythm, RHYTHM_LABELS } from '../data/models';
+import { duplicateSubscriptions, savingsPotentialPerMonth } from '../data/insights';
+import { RecurringItem, RHYTHM_LABELS } from '../data/models';
 import { addDays, daysBetween } from '../data/months';
 import { fixedCostsPerMonth, isActiveIn, isCurrentOrFuture } from '../data/recurring';
 import { RecurringForm } from '../income/recurring-form';
 import { downloadText, slug } from '../shared/download';
+import { RecurringSuggestions } from '../shared/recurring-suggestions';
 import { formatDate, formatEuro, formatEuroRounded } from '../shared/format';
 import { cancellationLetter, cancellationReminder } from './cancellation';
 
 const SOON_DAYS = 60;
 
 @Component({
-  imports: [RecurringForm, RouterLink],
+  imports: [RecurringForm, RecurringSuggestions, RouterLink],
   selector: 'app-contracts',
   templateUrl: './contracts.html',
   styles: `
@@ -57,7 +53,6 @@ export class Contracts {
   protected readonly eurRounded = formatEuroRounded;
   protected readonly date = formatDate;
   protected readonly rhythm = (item: RecurringItem) => RHYTHM_LABELS[item.rhythm];
-  protected readonly rhythmLabel = (rhythm: Rhythm) => RHYTHM_LABELS[rhythm];
   protected readonly soonDays = SOON_DAYS;
   protected readonly category = categoryName;
 
@@ -90,7 +85,6 @@ export class Contracts {
       names: group.items.map((item) => item.name).join(', '),
     })),
   );
-  protected readonly suggestions = computed(() => detectContracts(this.store.data()));
 
   private readonly similar = computed(() => {
     const map = new Map<string, string>();
@@ -150,14 +144,6 @@ export class Contracts {
 
   protected edit(item: RecurringItem): void {
     this.editor().open(item);
-  }
-
-  protected accept(suggestion: ContractSuggestion): void {
-    this.store.acceptSuggestion(suggestion);
-  }
-
-  protected dismiss(suggestion: ContractSuggestion): void {
-    this.store.dismissSuggestion(suggestion.key);
   }
 
   protected openLetter(item: RecurringItem): void {

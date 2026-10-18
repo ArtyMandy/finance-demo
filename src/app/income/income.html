@@ -23,8 +23,10 @@
   <p class="meta">
     Quartals- und Jahresbeträge sind als Monatsdurchschnitt eingerechnet. Ändert sich ein Betrag, z.
     B. durch eine Gehaltserhöhung, nutze „Betrag ändern“: Ab dem neuen Monat beginnt ein neuer
-    Zeitraum, die Historie bleibt.
+    Zeitraum, die Historie bleibt. Übersicht, Budgets und Auswertung rechnen mit diesen Beträgen.
   </p>
+
+  <app-recurring-suggestions />
 
   @for (section of sections(); track section.kind) {
     <section class="card" [attr.aria-labelledby]="'heading-' + section.kind">

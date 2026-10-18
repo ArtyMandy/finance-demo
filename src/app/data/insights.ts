@@ -1,8 +1,8 @@
-import { isSpending, spendingByCategory, transactionsIn } from './analytics';
+import { spendingByCategory } from './analytics';
 import { categorize, categoryName, isNeutralCategory, normalizeCounterparty } from './categories';
 import type { FinanceData, IsoDate, Month, RecurringItem, Rhythm, Transaction } from './models';
 import { addDays, addMonths, daysBetween, monthOf } from './months';
-import { isActiveIn, isCurrentOrFuture, monthlyEquivalent } from './recurring';
+import { amountInMonth, isActiveIn, isCurrentOrFuture, monthlyEquivalent } from './recurring';
 
 const median = (values: number[]) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -12,6 +12,7 @@ const median = (values: number[]) => {
 
 export interface ContractSuggestion {
   key: string;
+  kind: RecurringItem['kind'];
   name: string;
   amount: number;
   rhythm: Rhythm;
@@ -29,51 +30,65 @@ function rhythmFor(days: number): Rhythm | undefined {
 
 const titleCase = (text: string) => text.replace(/(^|\s)\S/g, (char) => char.toUpperCase());
 
+/** True when a defined income or expense of the same kind already covers the booking group. */
+function isKnown(data: FinanceData, kind: RecurringItem['kind'], name: string, last: Transaction) {
+  const amount = Math.abs(last.amount);
+  return data.recurring.some((item) => {
+    if (item.kind !== kind) return false;
+    const text = `${item.name} ${item.provider}`.toLowerCase();
+    if (name.split(' ').some((word) => word.length >= 4 && text.includes(word))) return true;
+    // Income is often named differently from its payer, e.g. "Gehalt" from "Muster GmbH",
+    // so the same amount in the month of the last booking counts as known too.
+    return (
+      kind === 'income' &&
+      Math.abs(amountInMonth(item, monthOf(last.date)) - amount) <= amount * 0.05
+    );
+  });
+}
+
 /**
- * Finds recurring payments in the bookings: same counterparty, similar amount (±15 %)
- * and a regular gap. Already known contracts and dismissed suggestions are skipped.
+ * Finds recurring income and payments in the bookings: same counterparty and direction,
+ * similar amount (±15 %) and a regular gap. Already defined items and dismissed suggestions
+ * are skipped.
  */
 export function detectContracts(data: FinanceData): ContractSuggestion[] {
   const groups = new Map<string, Transaction[]>();
   for (const tx of data.transactions) {
-    // Transfers between own accounts and savings plans are not contracts.
-    if (tx.amount >= 0 || isNeutralCategory(tx.categoryId)) continue;
-    const key = normalizeCounterparty(tx.counterparty);
-    if (!key) continue;
+    // Transfers between own accounts and savings plans are neither income nor expenses.
+    if (!tx.amount || isNeutralCategory(tx.categoryId)) continue;
+    const name = normalizeCounterparty(tx.counterparty);
+    if (!name) continue;
+    const key = tx.amount > 0 ? `+${name}` : name;
     groups.set(key, [...(groups.get(key) ?? []), tx]);
   }
-
-  const known = data.recurring
-    .filter((item) => item.kind === 'expense')
-    .map((item) => `${item.name} ${item.provider}`.toLowerCase());
 
   const suggestions: ContractSuggestion[] = [];
   for (const [key, list] of groups) {
     if (data.dismissedSuggestions.includes(key)) continue;
-    if (
-      known.some((text) => key.split(' ').some((word) => word.length >= 4 && text.includes(word)))
-    )
-      continue;
+    const kind = key.startsWith('+') ? 'income' : 'expense';
+    const name = key.replace(/^\+/, '');
     const sorted = [...list].sort((a, b) => a.date.localeCompare(b.date));
+    const last = sorted.at(-1)!;
+    if (isKnown(data, kind, name, last)) continue;
     const gaps = sorted.slice(1).map((tx, index) => daysBetween(sorted[index].date, tx.date));
     if (!gaps.length) continue;
     const rhythm = rhythmFor(median(gaps));
     if (!rhythm || (rhythm !== 'yearly' && sorted.length < 3)) continue;
-    const amounts = sorted.map((tx) => -tx.amount);
+    const amounts = sorted.map((tx) => Math.abs(tx.amount));
     const typical = median(amounts);
     if (amounts.some((amount) => Math.abs(amount - typical) > typical * 0.15)) continue;
-    const last = sorted.at(-1)!;
     suggestions.push({
       key,
-      name: titleCase(key),
-      amount: Math.round(-last.amount * 100) / 100,
+      kind,
+      name: titleCase(name),
+      amount: Math.round(Math.abs(last.amount) * 100) / 100,
       rhythm,
       categoryId: categorize(last, data.categoryRules),
       firstMonth: monthOf(sorted[0].date),
       count: sorted.length,
     });
   }
-  return suggestions.sort((a, b) => b.amount - a.amount);
+  return suggestions.sort((a, b) => a.kind.localeCompare(b.kind) || b.amount - a.amount);
 }
 
 /** Providers that offer comparable services; two active contracts in a group are a saving hint. */
@@ -157,8 +172,8 @@ export interface Hint {
 }
 
 /**
- * Savings hints: duplicate subscriptions, rising categories, unusually high bookings,
- * exceeded budgets and upcoming cancellation deadlines.
+ * Savings hints: duplicate subscriptions, rising categories, exceeded budgets, upcoming
+ * cancellation deadlines and recurring payments found in the bookings.
  */
 export function savingsHints(data: FinanceData, month: Month, today: IsoDate): Hint[] {
   const hints: Hint[] = [];
@@ -219,25 +234,15 @@ export function savingsHints(data: FinanceData, month: Month, today: IsoDate): H
     }
   }
 
-  // Unusually high single bookings in the last 30 days.
-  const since = addDays(today, -30);
-  for (const tx of data.transactions.filter(
-    (t) => t.date >= since && t.date <= today && isSpending(t),
-  )) {
-    const sameCategory = data.transactions.filter(
-      (t) => t.categoryId === tx.categoryId && isSpending(t) && t.id !== tx.id,
-    );
-    if (sameCategory.length < 5) continue;
-    const typical = median(sameCategory.map((t) => -t.amount));
-    if (-tx.amount > typical * 3 && -tx.amount > 100) {
-      hints.push({
-        id: `high-${tx.id}`,
-        kind: 'warning',
-        title: `Ungewöhnlich hohe Ausgabe`,
-        text: `${tx.counterparty || categoryName(tx.categoryId)}: ${Math.round(-tx.amount)} € (üblich ca. ${Math.round(typical)} €).`,
-        link: '/buchungen',
-      });
-    }
+  const detected = detectContracts(data);
+  if (detected.length) {
+    hints.push({
+      id: 'detected',
+      kind: 'reminder',
+      title: `${detected.length} wiederkehrende ${detected.length === 1 ? 'Zahlung' : 'Zahlungen'} erkannt`,
+      text: 'In deinen Buchungen gefunden. Übernimm sie in Einnahmen & Fixkosten, damit sie in die Auswertung einfließen.',
+      link: '/einnahmen',
+    });
   }
 
   return hints;
@@ -245,9 +250,4 @@ export function savingsHints(data: FinanceData, month: Month, today: IsoDate): H
 
 export function savingsPotentialPerMonth(data: FinanceData, month: Month): number {
   return duplicateSubscriptions(data, month).reduce((sum, group) => sum + group.monthlySaving, 0);
-}
-
-/** Bookings of the month that still sit in the fallback category. */
-export function uncategorizedCount(data: FinanceData, month: Month): number {
-  return transactionsIn(data, month).filter((tx) => tx.categoryId === 'sonstiges').length;
 }
