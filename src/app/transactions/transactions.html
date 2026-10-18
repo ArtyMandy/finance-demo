@@ -1,0 +1,175 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Manuell oder per ING-CSV</span>
+      <h1>Buchungen</h1>
+    </div>
+    <button type="button" class="btn" [disabled]="!cashAccounts().length" (click)="openBooking()">
+      Buchung eintragen
+    </button>
+  </div>
+
+  <app-csv-import [accounts]="cashAccounts()" />
+
+  <section class="card" aria-labelledby="list-heading">
+    <h2 id="list-heading">Liste</h2>
+    <div class="form filters" role="search" aria-label="Buchungen filtern">
+      <label class="field">
+        Konto
+        <select [formField]="filterForm.accountId">
+          <option value="">Alle Konten</option>
+          @for (account of cashAccounts(); track account.id) {
+            <option [value]="account.id">{{ account.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        Monat
+        <input type="month" placeholder="JJJJ-MM" [formField]="filterForm.month" />
+      </label>
+      <label class="field">
+        Kategorie
+        <select [formField]="filterForm.categoryId">
+          <option value="">Alle Kategorien</option>
+          @for (cat of categories; track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        Suche
+        <input type="search" placeholder="Empfänger, Zweck" [formField]="filterForm.search" />
+      </label>
+    </div>
+    <p class="meta" aria-live="polite">
+      {{ filtered().length }} Buchungen ({{ filterLabel() }}), Summe {{ eur(sum()) }}. Wird eine
+      Kategorie geändert, merkt sich die App das für weitere Buchungen dieses Empfängers.
+    </p>
+
+    @if (visible().length) {
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">
+            Buchungen
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Datum</th>
+              <th scope="col">Empfänger / Zweck</th>
+              <th scope="col">Kategorie</th>
+              <th scope="col" class="amount">Betrag</th>
+              <th scope="col"><span class="visually-hidden">Aktionen</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of visible(); track tx.id) {
+              <tr>
+                <td>{{ date(tx.date) }}</td>
+                <td>
+                  <span class="who">{{ tx.counterparty || '—' }}</span
+                  ><br />
+                  <span class="meta"
+                    >{{ tx.purpose
+                    }}{{ accountName(tx.accountId) ? ' · ' + accountName(tx.accountId) : '' }}</span
+                  >
+                </td>
+                <td>
+                  <select
+                    [attr.aria-label]="
+                      'Kategorie für ' + (tx.counterparty || 'Buchung') + ' am ' + date(tx.date)
+                    "
+                    (change)="setCategory(tx.id, $event)"
+                  >
+                    @for (cat of categories; track cat.id) {
+                      <option [value]="cat.id" [selected]="cat.id === tx.categoryId">
+                        {{ cat.name }}
+                      </option>
+                    }
+                  </select>
+                </td>
+                <td class="amount" [class.positive]="tx.amount > 0">{{ eur(tx.amount) }}</td>
+                <td>
+                  <button type="button" class="btn btn-ghost btn-small" (click)="remove(tx.id)">
+                    Löschen<span class="visually-hidden"
+                      >: {{ tx.counterparty }} am {{ date(tx.date) }}</span
+                    >
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (filtered().length > visible().length) {
+        <button type="button" class="btn btn-secondary" (click)="limit.set(limit() + 100)">
+          Weitere Buchungen anzeigen
+        </button>
+      }
+    } @else {
+      <p class="empty">Keine Buchungen für diese Auswahl.</p>
+    }
+  </section>
+
+  <dialog #bookingDialog aria-labelledby="booking-title">
+    <form class="dialog-body" novalidate (submit)="saveBooking(); $event.preventDefault()">
+      <h2 id="booking-title">Buchung eintragen</h2>
+      <div class="form">
+        <label class="field">
+          Konto
+          <select [formField]="bookingForm.accountId">
+            @for (account of cashAccounts(); track account.id) {
+              <option [value]="account.id">{{ account.name }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          Datum
+          <input type="date" [formField]="bookingForm.date" />
+          @if (bookingForm.date().touched() && bookingForm.date().errors().length) {
+            <span class="field-error">{{ bookingForm.date().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Art
+          <select [formField]="bookingForm.direction">
+            <option value="out">Ausgabe</option>
+            <option value="in">Einnahme</option>
+          </select>
+        </label>
+        <label class="field">
+          Betrag (€)
+          <input type="number" inputmode="decimal" step="0.01" [formField]="bookingForm.amount" />
+          @if (bookingForm.amount().touched() && bookingForm.amount().errors().length) {
+            <span class="field-error">{{ bookingForm.amount().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Empfänger / Auftraggeber
+          <input type="text" [formField]="bookingForm.counterparty" />
+          @if (bookingForm.counterparty().touched() && bookingForm.counterparty().errors().length) {
+            <span class="field-error">{{ bookingForm.counterparty().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Verwendungszweck
+          <input type="text" [formField]="bookingForm.purpose" />
+        </label>
+        <label class="field">
+          Kategorie
+          <select [formField]="bookingForm.categoryId">
+            <option value="">Automatisch erkennen</option>
+            @for (cat of categories; track cat.id) {
+              <option [value]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn">Speichern</button>
+        <button type="button" class="btn btn-secondary" (click)="bookingDialog.close()">
+          Abbrechen
+        </button>
+      </div>
+    </form>
+  </dialog>
+</main>

@@ -1,0 +1,149 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Manuell geführt, ohne Bankverbindung</span>
+      <h1>Konten &amp; Vermögen</h1>
+    </div>
+    <button type="button" class="btn" (click)="open()">Konto hinzufügen</button>
+  </div>
+
+  <div class="grid-stats">
+    <div class="card card-dark stat">
+      <span class="label">Gesamtvermögen</span>
+      <span class="stat-value">{{ eur(wealth().total) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Konten</span>
+      <span class="stat-value">{{ eur(wealth().cash) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Depots</span>
+      <span class="stat-value">{{ eur(wealth().investments) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Sachwerte</span>
+      <span class="stat-value">{{ eur(wealth().other) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Schulden</span>
+      <span class="stat-value">{{ eur(wealth().debts) }}</span>
+    </div>
+  </div>
+
+  <section class="card" aria-labelledby="accounts-heading">
+    <h2 id="accounts-heading">Deine Konten</h2>
+    @if (rows().length) {
+      <ul class="list">
+        @for (row of rows(); track row.account.id) {
+          <li>
+            <span class="avatar" aria-hidden="true">{{ row.account.name.charAt(0) }}</span>
+            <span class="list-main">
+              <span class="list-title">{{ row.account.name }}</span>
+              <span class="meta">
+                {{ typeLabel(row.account.type)
+                }}{{ row.account.institution ? ' · ' + row.account.institution : '' }}
+                @if (row.cash) {
+                  · {{ row.bookings }} Buchungen
+                } @else if (row.fromHoldings) {
+                  · Wert aus Depotpositionen
+                } @else if (row.lastValuation) {
+                  · Stand {{ date(row.lastValuation) }}
+                }
+              </span>
+            </span>
+            <span class="amount list-title" [class.negative]="row.balance < 0">{{
+              eur(row.balance)
+            }}</span>
+            <span class="row">
+              @if (row.cash) {
+                <a
+                  routerLink="/buchungen"
+                  [queryParams]="{ konto: row.account.id }"
+                  class="btn btn-secondary btn-small"
+                >
+                  Buchungen<span class="visually-hidden"> von {{ row.account.name }}</span>
+                </a>
+              } @else if (row.account.type === 'depot') {
+                <a routerLink="/anlage" class="btn btn-secondary btn-small"
+                  >Depot<span class="visually-hidden"> {{ row.account.name }}</span></a
+                >
+              }
+              <button type="button" class="btn btn-ghost btn-small" (click)="open(row.account)">
+                Bearbeiten<span class="visually-hidden">: {{ row.account.name }}</span>
+              </button>
+            </span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">
+        Noch keine Konten. Lege dein Girokonto, Tagesgeld, Depot, Sachwerte oder Kredite an.
+      </p>
+    }
+  </section>
+
+  <dialog #accountDialog aria-labelledby="account-title">
+    <form class="dialog-body" novalidate (submit)="save(); $event.preventDefault()">
+      <h2 id="account-title">{{ editing() ? 'Konto bearbeiten' : 'Konto hinzufügen' }}</h2>
+      <div class="form">
+        <label class="field">
+          Name
+          <input type="text" [formField]="accountForm.name" />
+          @if (accountForm.name().touched() && accountForm.name().errors().length) {
+            <span class="field-error">{{ accountForm.name().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Art
+          <select [formField]="accountForm.type">
+            @for (type of types; track type[0]) {
+              <option [value]="type[0]">{{ type[1] }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          Bank / Anbieter
+          <input type="text" [formField]="accountForm.institution" />
+        </label>
+        <label class="field">
+          {{
+            isCashType()
+              ? 'Anfangssaldo vor der ersten Buchung (€)'
+              : model().type === 'kredit'
+                ? 'Offene Restschuld heute (€)'
+                : 'Aktueller Wert (€)'
+          }}
+          <input type="number" inputmode="decimal" step="0.01" [formField]="accountForm.amount" />
+          @if (model().type === 'depot') {
+            <span class="field-hint"
+              >Mit Depotpositionen unter „Anlage“ wird der Wert automatisch berechnet.</span
+            >
+          }
+        </label>
+      </div>
+      @if (confirmDelete()) {
+        <p class="field-error" role="alert">
+          Das Konto wird mit allen Buchungen und Depotpositionen gelöscht. Das lässt sich nicht
+          rückgängig machen.
+        </p>
+      }
+      <div class="form-actions">
+        <button type="submit" class="btn">Speichern</button>
+        <button type="button" class="btn btn-secondary" (click)="accountDialog.close()">
+          Abbrechen
+        </button>
+        @if (editing()) {
+          @if (confirmDelete()) {
+            <button type="button" class="btn btn-danger" (click)="remove()">
+              Endgültig löschen
+            </button>
+          } @else {
+            <button type="button" class="btn btn-danger" (click)="confirmDelete.set(true)">
+              Löschen
+            </button>
+          }
+        }
+      </div>
+    </form>
+  </dialog>
+</main>

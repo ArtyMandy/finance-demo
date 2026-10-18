@@ -1,0 +1,158 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">{{ counts() }}</span>
+      <h1>Profil &amp; Daten</h1>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="profile-heading">
+      <h2 id="profile-heading">Profil</h2>
+      <p class="meta">Für Kündigungsschreiben und die Steuer- und Förderrechner.</p>
+      <form
+        class="stack"
+        novalidate
+        (submit)="saveProfile(); $event.preventDefault()"
+        (input)="saved.set(false)"
+      >
+        <div class="form">
+          <label class="field">
+            Name
+            <input type="text" autocomplete="name" [formField]="profileForm.name" />
+          </label>
+          <label class="field">
+            Straße und Hausnummer
+            <input type="text" autocomplete="street-address" [formField]="profileForm.street" />
+          </label>
+          <label class="field">
+            PLZ und Ort
+            <input type="text" autocomplete="address-level2" [formField]="profileForm.city" />
+          </label>
+          <label class="field">
+            Kirchensteuer
+            <select [formField]="profileForm.churchTax">
+              <option value="0">keine</option>
+              <option value="8">8 % (Bayern, Baden-Württemberg)</option>
+              <option value="9">9 % (übrige Länder)</option>
+            </select>
+          </label>
+          <label class="field">
+            Kinder mit Kindergeld
+            <input type="number" inputmode="numeric" [formField]="profileForm.children" />
+            @if (profileForm.children().touched() && profileForm.children().errors().length) {
+              <span class="field-error">{{ profileForm.children().errors()[0].message }}</span>
+            }
+          </label>
+          <label class="field field-check">
+            <input type="checkbox" [formField]="profileForm.jointAssessment" />
+            Zusammenveranlagung (verheiratet / eingetragene Partnerschaft)
+          </label>
+        </div>
+        <div class="form-actions" aria-live="polite">
+          <button type="submit" class="btn">Profil speichern</button>
+          @if (saved()) {
+            <span class="success">Gespeichert ✓</span>
+          }
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="storage-heading">
+      <h2 id="storage-heading">Speicherort &amp; Sync</h2>
+      <p>
+        Deine Daten liegen in diesem Browser auf diesem Gerät und funktionieren auch offline. Eine
+        Bankverbindung gibt es bewusst nicht.
+      </p>
+      @if (auth.user(); as user) {
+        <p>
+          Angemeldet als <strong>{{ user.email }}</strong
+          >.
+          @switch (sync.status()) {
+            @case ('synced') {
+              Deine Daten werden zusätzlich in der Cloud gesichert und auf deinen Geräten
+              abgeglichen.
+            }
+            @case ('syncing') {
+              Synchronisiere …
+            }
+            @case ('unavailable') {
+              Die Cloud-Sicherung ist auf dem Server noch nicht eingerichtet; die Daten bleiben auf
+              diesem Gerät.
+            }
+            @case ('error') {
+              Die letzte Synchronisierung ist fehlgeschlagen und wird erneut versucht, sobald du
+              online bist.
+            }
+          }
+        </p>
+      } @else {
+        <p class="meta">
+          Mit einem Konto werden deine Daten zusätzlich in der Cloud gesichert und auf mehreren
+          Geräten abgeglichen.
+          <a routerLink="/anmelden">Anmelden</a> oder
+          <a routerLink="/anmelden" [queryParams]="{ modus: 'registrieren' }">registrieren</a>.
+        </p>
+      }
+      <p class="meta">Steuer- und Förderregeln: Stand {{ rulesAsOf }}.</p>
+    </section>
+
+    <section class="card span-all" aria-labelledby="data-heading">
+      <h2 id="data-heading">Daten sichern &amp; exportieren</h2>
+      <div class="row">
+        <button type="button" class="btn" (click)="exportBackup()">
+          Sicherung herunterladen (JSON)
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="exportCsv()">
+          Buchungen als CSV exportieren
+        </button>
+        <label class="btn btn-secondary">
+          Sicherung wiederherstellen
+          <input
+            type="file"
+            accept="application/json,.json"
+            class="visually-hidden"
+            (change)="importBackup($event)"
+          />
+        </label>
+      </div>
+      <div class="row">
+        <button type="button" class="btn btn-secondary" (click)="loadDemo()">
+          {{ confirmDemo() ? 'Ja, durch Beispieldaten ersetzen' : 'Beispieldaten laden' }}
+        </button>
+        <button type="button" class="btn btn-danger" (click)="deleteAll()">
+          {{ confirmDelete() ? 'Ja, endgültig alle Daten löschen' : 'Alle Daten löschen' }}
+        </button>
+        @if (confirmDemo() || confirmDelete()) {
+          <button
+            type="button"
+            class="btn btn-ghost"
+            (click)="confirmDemo.set(false); confirmDelete.set(false)"
+          >
+            Abbrechen
+          </button>
+        }
+      </div>
+      <div aria-live="polite">
+        @if (confirmDemo()) {
+          <p class="savings-text">
+            Deine bisherigen Daten werden durch Beispieldaten ersetzt. Lade vorher eine Sicherung
+            herunter.
+          </p>
+        }
+        @if (confirmDelete()) {
+          <p class="negative">
+            Alle Daten auf diesem Gerät{{ auth.user() ? ' und in der Cloud' : '' }} werden gelöscht.
+            Das lässt sich nicht rückgängig machen.
+          </p>
+        }
+        @if (message()) {
+          <p class="success">{{ message() }}</p>
+        }
+        @if (error()) {
+          <p class="negative">{{ error() }}</p>
+        }
+      </div>
+    </section>
+  </div>
+</main>

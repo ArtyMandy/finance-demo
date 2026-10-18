@@ -13,7 +13,7 @@ import { Connectivity } from './connectivity';
       }
       @if (updates.updateReady()) {
         <p class="banner update">
-          Eine neue Version von Finance-Demo ist verfügbar.
+          Eine neue Version von Finanz-demo ist verfügbar.
           <button type="button" (click)="updates.reload()">Neu laden</button>
         </p>
       }

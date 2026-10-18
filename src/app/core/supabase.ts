@@ -4,5 +4,8 @@ import { environment } from '../../environments/environment';
 
 @Service()
 export class Supabase {
-  readonly client: SupabaseClient = createClient(environment.supabaseUrl, environment.supabasePublishableKey);
+  readonly client: SupabaseClient = createClient(
+    environment.supabaseUrl,
+    environment.supabasePublishableKey,
+  );
 }
