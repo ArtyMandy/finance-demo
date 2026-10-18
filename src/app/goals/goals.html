@@ -1,0 +1,225 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Insgesamt gespart: {{ eur(totalSaved()) }}</span>
+      <h1>Sparziele</h1>
+    </div>
+    <button type="button" class="btn" (click)="openGoal()">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+      </svg>
+      Neues Sparziel
+    </button>
+  </div>
+
+  <div role="tablist" aria-label="Sparziele filtern" class="segmented">
+    <button
+      #activeTab
+      type="button"
+      role="tab"
+      id="tab-active"
+      aria-controls="panel-goals"
+      [attr.aria-selected]="tab() === 'active'"
+      [attr.tabindex]="tab() === 'active' ? 0 : -1"
+      (click)="tab.set('active')"
+      (keydown.arrowRight)="tab.set('done'); doneTab.focus()"
+    >
+      Aktiv ({{ active().length }})
+    </button>
+    <button
+      #doneTab
+      type="button"
+      role="tab"
+      id="tab-done"
+      aria-controls="panel-goals"
+      [attr.aria-selected]="tab() === 'done'"
+      [attr.tabindex]="tab() === 'done' ? 0 : -1"
+      (click)="tab.set('done')"
+      (keydown.arrowLeft)="tab.set('active'); activeTab.focus()"
+    >
+      Erreicht ({{ done().length }})
+    </button>
+  </div>
+
+  <div
+    id="panel-goals"
+    role="tabpanel"
+    [attr.aria-labelledby]="tab() === 'active' ? 'tab-active' : 'tab-done'"
+    class="grid"
+  >
+    @if (tab() === 'active') {
+      @for (card of cards(); track card.goal.id) {
+        <article class="card">
+          <div class="goal-head">
+            <div>
+              <h2>{{ card.goal.name }}</h2>
+              <span class="meta">bis {{ month(card.goal.targetMonth) }}</span>
+            </div>
+            <span class="pct amount">{{ card.percent }} %</span>
+          </div>
+          <div class="bar" aria-hidden="true"><span [style.width.%]="card.percent"></span></div>
+          <div class="spread meta">
+            <span class="amount"
+              ><strong>{{ eur(card.goal.saved) }}</strong> von {{ eur(card.goal.target) }}</span
+            >
+            <span [class.savings-text]="card.overdue">
+              {{ card.overdue ? 'Zieldatum überschritten · ' : '' }}{{ eur(card.rate) }} / Monat
+              nötig
+            </span>
+          </div>
+          <div class="row">
+            <button type="button" class="btn btn-small" (click)="openDeposit(card.goal)">
+              Einzahlen<span class="visually-hidden"> für {{ card.goal.name }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary btn-small"
+              (click)="openDeposit(card.goal, true)"
+            >
+              Entnehmen<span class="visually-hidden"> aus {{ card.goal.name }}</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-small" (click)="openGoal(card.goal)">
+              Bearbeiten<span class="visually-hidden">: {{ card.goal.name }}</span>
+            </button>
+          </div>
+        </article>
+      } @empty {
+        <p class="empty">
+          Noch keine aktiven Sparziele. Lege eins an, z. B. Notgroschen, Urlaub oder Auto.
+        </p>
+      }
+    } @else {
+      @for (goal of done(); track goal.id) {
+        <article class="card">
+          <div class="spread">
+            <div>
+              <h2>{{ goal.name }}</h2>
+              <span class="meta"
+                >erreicht im {{ month(goal.achievedMonth) }} · {{ eur(goal.target) }}</span
+              >
+            </div>
+            <svg class="icon positive" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M8 12.5l2.5 2.5L16 9.5" />
+            </svg>
+          </div>
+          <div class="row">
+            <button type="button" class="btn btn-ghost btn-small" (click)="openGoal(goal)">
+              Bearbeiten<span class="visually-hidden">: {{ goal.name }}</span>
+            </button>
+            <button type="button" class="btn btn-danger btn-small" (click)="remove(goal)">
+              Löschen<span class="visually-hidden">: {{ goal.name }}</span>
+            </button>
+          </div>
+        </article>
+      } @empty {
+        <p class="empty">Noch kein Ziel erreicht – das kommt!</p>
+      }
+    }
+  </div>
+
+  <section class="card card-tint card-link check" aria-labelledby="emergency-heading">
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3l8 3v6c0 4.5-3.4 8.1-8 9-4.6-.9-8-4.5-8-9V6z" />
+    </svg>
+    <span>
+      <h2 id="emergency-heading">Notgroschen-Check</h2>
+      @switch (emergency().status) {
+        @case ('unknown') {
+          <span class="meta">
+            Erfasse deine <a routerLink="/einnahmen">Fixkosten</a>, dann berechnen wir die
+            empfohlene Rücklage.
+          </span>
+        }
+        @default {
+          <span class="meta">
+            Bei Fixkosten von {{ eur(emergency().fixed) }} im Monat empfehlen sich 3–6
+            Monatsausgaben Rücklage: {{ eur(emergency().low) }}–{{ eur(emergency().high) }}. Auf
+            deinen Tagesgeldkonten liegen {{ eur(emergency().reserve) }}.
+            @if (emergency().status === 'inside') {
+              Du liegst im Zielkorridor.
+            } @else if (emergency().status === 'below') {
+              Es fehlen noch {{ eur(emergency().low - emergency().reserve) }} bis zum Minimum.
+            } @else {
+              Alles über der Rücklage kann langfristiger angelegt werden – siehe
+              <a routerLink="/wissen">Anlage-Wissen</a>.
+            }
+          </span>
+        }
+      }
+    </span>
+  </section>
+
+  <dialog #goalDialog aria-labelledby="goal-dialog-title">
+    <form class="dialog-body" novalidate (submit)="saveGoal(); $event.preventDefault()">
+      <h2 id="goal-dialog-title">{{ editing() ? 'Sparziel bearbeiten' : 'Neues Sparziel' }}</h2>
+      <div class="form">
+        <label class="field">
+          Name
+          <input type="text" [formField]="goalForm.name" />
+          @if (goalForm.name().touched() && goalForm.name().errors().length) {
+            <span class="field-error">{{ goalForm.name().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Zielbetrag (€)
+          <input type="number" inputmode="decimal" step="0.01" [formField]="goalForm.target" />
+          @if (goalForm.target().touched() && goalForm.target().errors().length) {
+            <span class="field-error">{{ goalForm.target().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Zielmonat
+          <input type="month" placeholder="JJJJ-MM" [formField]="goalForm.targetMonth" />
+          @if (goalForm.targetMonth().touched() && goalForm.targetMonth().errors().length) {
+            <span class="field-error">{{ goalForm.targetMonth().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Bereits gespart (€)
+          <input type="number" inputmode="decimal" step="0.01" [formField]="goalForm.saved" />
+          @if (goalForm.saved().touched() && goalForm.saved().errors().length) {
+            <span class="field-error">{{ goalForm.saved().errors()[0].message }}</span>
+          }
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn">Speichern</button>
+        <button type="button" class="btn btn-secondary" (click)="goalDialog.close()">
+          Abbrechen
+        </button>
+        @if (editing(); as goal) {
+          <button type="button" class="btn btn-danger" (click)="remove(goal); goalDialog.close()">
+            Löschen
+          </button>
+        }
+      </div>
+    </form>
+  </dialog>
+
+  <dialog #depositDialog aria-labelledby="deposit-title">
+    <form class="dialog-body" novalidate (submit)="saveDeposit(); $event.preventDefault()">
+      <h2 id="deposit-title">
+        {{ depositModel().withdraw ? 'Entnehmen aus' : 'Einzahlen für' }} „{{
+          depositGoal()?.name
+        }}“
+      </h2>
+      <label class="field">
+        Betrag (€)
+        <input type="number" inputmode="decimal" step="0.01" [formField]="depositForm.amount" />
+        @if (depositForm.amount().touched() && depositForm.amount().errors().length) {
+          <span class="field-error">{{ depositForm.amount().errors()[0].message }}</span>
+        }
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn">
+          {{ depositModel().withdraw ? 'Entnehmen' : 'Einzahlen' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="depositDialog.close()">
+          Abbrechen
+        </button>
+      </div>
+    </form>
+  </dialog>
+</main>

@@ -7,9 +7,11 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { filter, firstValueFrom } from 'rxjs';
 import { App } from './app';
 import { routes } from './app.routes';
+import { AppInstall, BeforeInstallPromptEvent } from './core/app-install';
 
 describe('App', () => {
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
@@ -26,26 +28,57 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the home page at the root route', async () => {
+  it('should render the overview with onboarding at the root route', async () => {
     const harness = await RouterTestingHarness.create('/');
-    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Übersicht');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain(
+      'Deine Finanzen',
+    );
+    expect(harness.routeNativeElement?.textContent).toContain('Beispieldaten laden');
   });
 
-  it('should show the header with overview, sign-in and sign-up links on every page', async () => {
+  it('should show the four main areas in the navigation', async () => {
     const fixture = TestBed.createComponent(App);
-    for (const url of ['/', '/anmelden']) {
-      await TestBed.inject(Router).navigateByUrl(url);
-      await fixture.whenStable();
+    await fixture.whenStable();
+    const labels = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'app-main-nav.bottom-nav nav a',
+      ) as NodeListOf<HTMLAnchorElement>,
+    ).map((link) => link.textContent?.trim());
+    expect(labels).toEqual(['Übersicht', 'Ziele', 'Verträge', 'Anlage']);
+  });
 
-      const links = Array.from(
-        fixture.nativeElement.querySelectorAll('app-site-header nav a') as NodeListOf<HTMLAnchorElement>,
-      ).map((link) => [link.textContent?.trim(), link.getAttribute('href')]);
-      expect(links).toEqual([
-        ['Übersicht', '/'],
-        ['Anmelden', '/anmelden'],
-        ['Registrieren', '/anmelden?modus=registrieren'],
-      ]);
-    }
+  it('should show sign-in and sign-up links in the header', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const links = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        'app-site-header nav[aria-label="Konto"] a',
+      ) as NodeListOf<HTMLAnchorElement>,
+    ).map((link) => [link.textContent?.trim(), link.getAttribute('href')]);
+    expect(links).toEqual([
+      ['Anmelden', '/anmelden'],
+      ['Registrieren', '/anmelden?modus=registrieren'],
+    ]);
+  });
+
+  it('should keep the install button in the header once the browser allows installing', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('app-site-header .install')).toBeNull();
+
+    TestBed.inject(AppInstall);
+    window.dispatchEvent(
+      Object.assign(new Event('beforeinstallprompt', { cancelable: true }), {
+        prompt: vi.fn(async () => undefined),
+        userChoice: Promise.resolve({ outcome: 'dismissed' as const }),
+      }) satisfies BeforeInstallPromptEvent,
+    );
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('app-site-header .install')?.textContent).toContain(
+      'App installieren',
+    );
   });
 
   it('should open the login page in sign-up mode via the Registrieren link', async () => {
@@ -56,10 +89,14 @@ describe('App', () => {
     const navigated = firstValueFrom(
       TestBed.inject(Router).events.pipe(filter((event) => event instanceof NavigationEnd)),
     );
-    fixture.nativeElement.querySelector('app-site-header a.button-secondary').click();
+    fixture.nativeElement
+      .querySelector('app-site-header nav[aria-label="Konto"] a.btn-secondary')
+      .click();
     await navigated;
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector('app-login h1')?.textContent).toContain('Registrieren');
+    expect(fixture.nativeElement.querySelector('app-login h1')?.textContent).toContain(
+      'Registrieren',
+    );
   });
 });

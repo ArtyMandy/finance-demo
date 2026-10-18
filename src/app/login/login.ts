@@ -17,7 +17,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   imports: [FormField],
   selector: 'app-login',
   template: `
-    <main class="login">
+    <main id="inhalt" class="login">
       <h1>{{ mode() === 'signIn' ? 'Anmelden' : 'Registrieren' }}</h1>
 
       <form class="login-form" novalidate (submit)="onSubmit(); $event.preventDefault()">
@@ -149,7 +149,9 @@ export class Login {
       this.message.set('');
       try {
         if (this.mode() === 'signUp' && (await this.auth.signUp(email, password))) {
-          this.message.set('Fast fertig: Bitte bestätige deine E-Mail-Adresse über den Link in der E-Mail.');
+          this.message.set(
+            'Fast fertig: Bitte bestätige deine E-Mail-Adresse über den Link in der E-Mail.',
+          );
           return;
         }
         if (this.mode() === 'signIn') {

@@ -1,4 +1,10 @@
-# FinanceDemo
+# Finanz-demo
+
+All your finances in one place, as an installable PWA: income and fixed costs, bookings (manual or ING CSV import), net worth, budgets, savings goals, contracts with a cancellation assistant, depot tracking and calculators for German taxes and subsidies. Product docs (German) are in [`docs/`](docs/).
+
+- **Local-first:** data lives in the browser (`localStorage`) and works offline without an account. When signed in, it is mirrored to Supabase (table `finance_documents`, see `supabase/migrations/`). Apply that migration before relying on the cloud sync; until then the app keeps working locally and says so.
+- **Rules in one place:** yearly tax and subsidy values are in [`src/app/rules/rules.ts`](src/app/rules/rules.ts).
+- **No bank connection, no investment advice.**
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.3.
 

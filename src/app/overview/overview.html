@@ -1,0 +1,161 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">{{ monthLabel() }}</span>
+      <h1>Deine Finanzen</h1>
+    </div>
+  </div>
+
+  @if (isEmpty()) {
+    <section class="card card-tint onboarding" aria-labelledby="start-heading">
+      <h2 id="start-heading">Willkommen bei Finanz-demo</h2>
+      <p>
+        Alle Finanzen an einem Ort, ohne Bankverbindung. Deine Daten bleiben auf diesem Gerät; mit
+        einem Konto werden sie zusätzlich in der Cloud gesichert.
+      </p>
+      <ol>
+        <li><a routerLink="/konten">Konten anlegen</a> – Girokonto, Tagesgeld, Depot, Kredite</li>
+        <li>
+          <a routerLink="/einnahmen">Einnahmen und Fixkosten erfassen</a> – mit Rhythmus und
+          Zeitraum
+        </li>
+        <li><a routerLink="/buchungen">Buchungen eintragen oder ING-CSV importieren</a></li>
+        <li><a routerLink="/ziele">Sparziele festlegen</a></li>
+      </ol>
+      <div class="row">
+        <button type="button" class="btn" (click)="loadDemo()">Beispieldaten laden</button>
+        <a routerLink="/konten" class="btn btn-secondary">Erstes Konto anlegen</a>
+      </div>
+    </section>
+  }
+
+  <div class="grid">
+    <section class="card card-dark hero" aria-labelledby="wealth-heading">
+      <h2 id="wealth-heading" class="label">Gesamtvermögen</h2>
+      <div class="row">
+        <span class="big-number">{{ eur(wealth().total) }}</span>
+        @if (change()) {
+          <span class="positive"
+            >{{ signedPct(change()) }} <span class="visually-hidden">gegenüber Vormonat</span></span
+          >
+        }
+      </div>
+      <app-sparkline [values]="sparkline()" />
+      <p class="split meta">
+        <span>Konten {{ eur(wealth().cash) }}</span>
+        <span>Depots {{ eur(wealth().investments) }}</span>
+        <span>Sachwerte {{ eur(wealth().other) }}</span>
+        @if (wealth().debts) {
+          <span>Schulden −{{ eur(wealth().debts) }}</span>
+        }
+      </p>
+    </section>
+
+    <section class="card" aria-labelledby="month-heading">
+      <div class="spread">
+        <h2 id="month-heading">Dieser Monat</h2>
+        <span class="meta">noch {{ daysLeft() }} {{ daysLeft() === 1 ? 'Tag' : 'Tage' }}</span>
+      </div>
+      <div class="grid-stats grid-3">
+        <div class="stat">
+          <span class="label">Einnahmen</span>
+          <span class="stat-value">{{ eur(income()) }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Ausgaben</span>
+          <span class="stat-value">{{ eur(preview().expensesActual) }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Übrig (voraussichtlich)</span>
+          <span
+            class="stat-value"
+            [class.positive]="preview().leftover >= 0"
+            [class.negative]="preview().leftover < 0"
+          >
+            {{ eur(preview().leftover) }}
+          </span>
+        </div>
+      </div>
+      <div class="bar" aria-hidden="true">
+        <span class="bar-dark" [style.width.%]="spentShare()"></span>
+        <span class="bar-planned" [style.width.%]="plannedShare()"></span>
+      </div>
+      <p class="legend meta">
+        <span><i class="sw-spent"></i>ausgegeben</span>
+        <span class="savings-text"
+          ><i class="sw-planned"></i>noch geplant {{ eur(preview().expensesPending) }}</span
+        >
+        <span>Sparquote {{ pct(savingsRate()) }}</span>
+      </p>
+    </section>
+
+    <section class="card" aria-labelledby="preview-heading">
+      <div class="spread">
+        <h2 id="preview-heading">Steht noch an</h2>
+        <a routerLink="/einnahmen" class="meta">Bearbeiten</a>
+      </div>
+      @if (preview().pending.length) {
+        <ul class="list">
+          @for (entry of preview().pending; track entry.item.id) {
+            <li>
+              <span class="list-main">
+                <span class="list-title">{{ entry.item.name }}</span>
+                <span class="meta">{{
+                  entry.item.kind === 'income' ? 'Einnahme' : 'Ausgabe'
+                }}</span>
+              </span>
+              <span class="amount" [class.positive]="entry.item.kind === 'income'">
+                {{ entry.item.kind === 'income' ? '+' : '−' }}{{ eur(entry.amount) }}
+              </span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">Für diesen Monat steht nichts mehr an.</p>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="categories-heading">
+      <div class="spread">
+        <h2 id="categories-heading">Ausgaben nach Kategorie</h2>
+        <a routerLink="/auswertung" class="meta"
+          >Alle<span class="visually-hidden"> Auswertungen</span></a
+        >
+      </div>
+      <app-category-bars [items]="categories()" [limit]="5" />
+    </section>
+
+    @for (hint of hints(); track hint.id) {
+      <a
+        [routerLink]="hint.link"
+        class="card card-link"
+        [class.card-savings]="hint.kind !== 'reminder'"
+        [class.card-tint]="hint.kind === 'reminder'"
+      >
+        <svg class="icon savings-text" viewBox="0 0 24 24" aria-hidden="true">
+          @if (hint.kind === 'reminder') {
+            <circle cx="12" cy="13" r="8" />
+            <path d="M12 9v4l2.5 2" />
+            <path d="M9 2h6" />
+          } @else {
+            <path d="M9 18h6" />
+            <path d="M10 22h4" />
+            <path d="M12 2a7 7 0 0 0-4 12.7V16h8v-1.3A7 7 0 0 0 12 2z" />
+          }
+        </svg>
+        <span>
+          <strong>{{ hint.title }}</strong>
+          <span class="meta">{{ hint.text }}</span>
+        </span>
+      </a>
+    }
+
+    <section class="card wide" aria-labelledby="history-heading">
+      <div class="spread">
+        <h2 id="history-heading">Vermögensentwicklung</h2>
+        <span class="meta">letzte 12 Monate</span>
+      </div>
+      <app-line-chart [points]="historyPoints()" caption="Gesamtvermögen am Monatsende" />
+    </section>
+  </div>
+</main>

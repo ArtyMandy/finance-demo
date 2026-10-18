@@ -1,0 +1,142 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Regelmäßige Beträge mit Zeitraum</span>
+      <h1>Einnahmen &amp; Fixkosten</h1>
+    </div>
+  </div>
+
+  <div class="grid-stats">
+    <div class="card stat">
+      <span class="label">Einnahmen / Monat</span>
+      <span class="stat-value positive">{{ eur(incomePerMonth()) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Fixkosten / Monat</span>
+      <span class="stat-value">{{ eur(expensesPerMonth()) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Frei verfügbar / Monat</span>
+      <span class="stat-value">{{ eur(incomePerMonth() - expensesPerMonth()) }}</span>
+    </div>
+  </div>
+  <p class="meta">
+    Quartals- und Jahresbeträge sind als Monatsdurchschnitt eingerechnet. Ändert sich ein Betrag, z.
+    B. durch eine Gehaltserhöhung, nutze „Betrag ändern“: Ab dem neuen Monat beginnt ein neuer
+    Zeitraum, die Historie bleibt.
+  </p>
+
+  @for (section of sections(); track section.kind) {
+    <section class="card" [attr.aria-labelledby]="'heading-' + section.kind">
+      <div class="spread">
+        <h2 [id]="'heading-' + section.kind">{{ section.title }}</h2>
+        <button type="button" class="btn btn-small" (click)="create(section.kind)">
+          {{ section.add }}
+        </button>
+      </div>
+      @if (section.list.length) {
+        <ul class="list">
+          @for (series of section.list; track series.current.seriesId) {
+            <li>
+              <span class="list-main">
+                <span class="list-title">
+                  {{ series.current.name }}
+                  @if (series.ended) {
+                    <span class="pill">beendet</span>
+                  } @else if (!series.activeNow) {
+                    <span class="pill pill-warning">ab {{ month(series.current.from) }}</span>
+                  }
+                </span>
+                <span class="meta">
+                  {{ rhythm(series.current) }} · {{ category(series.current.categoryId) }} · ab
+                  {{ month(series.current.from)
+                  }}{{ series.current.to ? ' bis ' + month(series.current.to) : ', unbefristet' }}
+                </span>
+                @if (series.history.length) {
+                  <details>
+                    <summary>Frühere Zeiträume ({{ series.history.length }})</summary>
+                    <ul class="list">
+                      @for (period of series.history; track period.id) {
+                        <li class="meta">
+                          {{ month(period.from) }} – {{ period.to ? month(period.to) : 'offen' }}:
+                          {{ eur(period.amount) }} {{ rhythm(period) }}
+                        </li>
+                      }
+                    </ul>
+                  </details>
+                }
+              </span>
+              <span class="amount list-title" [class.positive]="section.kind === 'income'">{{
+                eur(series.current.amount)
+              }}</span>
+              <span class="row">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-small"
+                  (click)="openChange(series.current)"
+                >
+                  Betrag ändern<span class="visually-hidden">: {{ series.current.name }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-small"
+                  (click)="edit(series.current)"
+                >
+                  Bearbeiten<span class="visually-hidden">: {{ series.current.name }}</span>
+                </button>
+                @if (!series.ended && !series.current.to) {
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-small"
+                    (click)="endNow(series.current)"
+                  >
+                    Beenden<span class="visually-hidden">: {{ series.current.name }}</span>
+                  </button>
+                }
+                <button type="button" class="btn btn-ghost btn-small" (click)="remove(series)">
+                  Löschen<span class="visually-hidden">: {{ series.current.name }}</span>
+                </button>
+              </span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">Noch keine Einträge.</p>
+      }
+    </section>
+  }
+
+  <app-recurring-form />
+
+  <dialog #changeDialog aria-labelledby="change-title">
+    <form class="dialog-body" novalidate (submit)="saveChange(); $event.preventDefault()">
+      <h2 id="change-title">Betrag ändern: {{ changing()?.name }}</h2>
+      <p class="meta">
+        Bisher {{ eur(changing()?.amount ?? 0) }}. Der bisherige Zeitraum endet im Vormonat, der
+        neue Betrag gilt ab dem gewählten Monat.
+      </p>
+      <div class="form">
+        <label class="field">
+          Neuer Betrag (€)
+          <input type="number" inputmode="decimal" step="0.01" [formField]="changeForm.amount" />
+          @if (changeForm.amount().touched() && changeForm.amount().errors().length) {
+            <span class="field-error">{{ changeForm.amount().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Gilt ab Monat
+          <input type="month" placeholder="JJJJ-MM" [formField]="changeForm.from" />
+          @if (changeForm.from().touched() && changeForm.from().errors().length) {
+            <span class="field-error">{{ changeForm.from().errors()[0].message }}</span>
+          }
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn">Übernehmen</button>
+        <button type="button" class="btn btn-secondary" (click)="changeDialog.close()">
+          Abbrechen
+        </button>
+      </div>
+    </form>
+  </dialog>
+</main>

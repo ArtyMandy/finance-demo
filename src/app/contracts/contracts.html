@@ -1,0 +1,231 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow"
+        >{{ contracts().length }} {{ contracts().length === 1 ? 'Vertrag' : 'Verträge' }} im
+        Vertragsordner</span
+      >
+      <h1>Verträge &amp; Abos</h1>
+    </div>
+    <button type="button" class="btn" (click)="add()">Vertrag hinzufügen</button>
+  </div>
+
+  <div class="grid-stats">
+    <div class="card stat">
+      <span class="label">Fixkosten / Monat</span>
+      <span class="stat-value">{{ eurRounded(fixedCosts()) }}</span>
+    </div>
+    <div class="card card-savings stat">
+      <span class="label savings-text">Sparpotenzial / Jahr</span>
+      <span class="stat-value savings-text">{{
+        potential() ? 'bis ' + eurRounded(potential()) : '–'
+      }}</span>
+    </div>
+  </div>
+
+  @for (group of duplicates(); track group.label) {
+    <p class="card card-savings">
+      <span>
+        <strong>{{ group.items.length }} {{ group.label }}-Verträge mit ähnlichem Angebot</strong>
+        <span class="meta">
+          – {{ group.names }}. Nur das günstigste zu behalten spart bis zu
+          {{ eur(group.monthlySaving) }} im Monat.</span
+        >
+      </span>
+    </p>
+  }
+
+  @if (suggestions().length) {
+    <section class="card" aria-labelledby="detected-heading">
+      <h2 id="detected-heading">Wiederkehrende Zahlungen erkannt</h2>
+      <p class="meta">
+        Aus deinen Buchungen erkannt. Übernehmen legt sie als fixe Ausgabe im Vertragsordner an.
+      </p>
+      <ul class="list">
+        @for (suggestion of suggestions(); track suggestion.key) {
+          <li>
+            <span class="avatar" aria-hidden="true">{{ suggestion.name.charAt(0) }}</span>
+            <span class="list-main">
+              <span class="list-title">{{ suggestion.name }}</span>
+              <span class="meta"
+                >{{ suggestion.count }}× {{ rhythmLabel(suggestion.rhythm) }} ·
+                {{ category(suggestion.categoryId) }}</span
+              >
+            </span>
+            <span class="amount list-title">{{ eur(suggestion.amount) }}</span>
+            <span class="row">
+              <button type="button" class="btn btn-small" (click)="accept(suggestion)">
+                Übernehmen<span class="visually-hidden">: {{ suggestion.name }}</span>
+              </button>
+              <button type="button" class="btn btn-ghost btn-small" (click)="dismiss(suggestion)">
+                Ignorieren<span class="visually-hidden">: {{ suggestion.name }}</span>
+              </button>
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="card" aria-labelledby="soon-heading">
+    <h2 id="soon-heading">Bald kündbar</h2>
+    @if (soon().length) {
+      <ul class="list">
+        @for (entry of soon(); track entry.item.id) {
+          <li>
+            <span class="avatar" aria-hidden="true">{{ entry.item.name.charAt(0) }}</span>
+            <span class="list-main">
+              <span class="list-title">{{ entry.item.name }}</span>
+              <span class="meta" [class.savings-text]="entry.urgent">{{ entry.meta }}</span>
+              @if (entry.hint) {
+                <span class="meta savings-text">{{ entry.hint }}</span>
+              }
+            </span>
+            <span class="actions">
+              <span class="amount list-title">{{ eur(entry.item.amount) }}</span>
+              @if (entry.item.status === 'prepared') {
+                <span class="pill pill-success">Vorbereitet ✓</span>
+              } @else {
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-small"
+                  (click)="openLetter(entry.item)"
+                >
+                  Kündigen<span class="visually-hidden">: {{ entry.item.name }}</span>
+                </button>
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">In den nächsten {{ soonDays }} Tagen läuft keine Kündigungsfrist ab.</p>
+    }
+  </section>
+
+  <section class="card" aria-labelledby="all-heading">
+    <h2 id="all-heading">Alle Verträge</h2>
+    @if (contracts().length) {
+      <ul class="list">
+        @for (item of contracts(); track item.id) {
+          <li>
+            <span class="list-main">
+              <span class="list-title">
+                {{ item.name }}
+                @switch (item.status) {
+                  @case ('prepared') {
+                    <span class="pill pill-success">Kündigung vorbereitet</span>
+                  }
+                  @case ('cancelled') {
+                    <span class="pill">gekündigt</span>
+                  }
+                }
+              </span>
+              <span class="meta">
+                {{ rhythm(item) }} · {{ category(item.categoryId)
+                }}{{ item.provider ? ' · ' + item.provider : ''
+                }}{{
+                  item.cancelBy
+                    ? ' · kündbar bis ' + date(item.cancelBy)
+                    : item.monthlyCancelable
+                      ? ' · monatlich kündbar'
+                      : ''
+                }}
+              </span>
+            </span>
+            <span class="amount list-title">{{ eur(item.amount) }}</span>
+            <span class="row">
+              @if (item.status === 'active') {
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-small"
+                  (click)="openLetter(item)"
+                >
+                  Kündigen<span class="visually-hidden">: {{ item.name }}</span>
+                </button>
+              } @else if (item.status === 'prepared') {
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-small"
+                  (click)="setStatus(item, 'cancelled')"
+                >
+                  Als gekündigt markieren<span class="visually-hidden">: {{ item.name }}</span>
+                </button>
+              }
+              @if (item.cancelBy && item.status === 'active') {
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-small"
+                  (click)="downloadReminder(item)"
+                >
+                  Erinnerung (.ics)<span class="visually-hidden"> für {{ item.name }}</span>
+                </button>
+              }
+              <button type="button" class="btn btn-ghost btn-small" (click)="edit(item)">
+                Bearbeiten<span class="visually-hidden">: {{ item.name }}</span>
+              </button>
+            </span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">
+        Noch keine Verträge. Füge sie hinzu oder
+        <a routerLink="/buchungen">importiere Buchungen</a> – wiederkehrende Zahlungen werden dann
+        automatisch erkannt.
+      </p>
+    }
+  </section>
+
+  <p class="card card-dashed card-link">
+    <svg class="icon positive" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2.5 2" />
+      <path d="M9 2h6" />
+    </svg>
+    <span class="meta">
+      Vertragswecker: 30 Tage vor jeder eingetragenen Kündigungsfrist erscheint ein Hinweis in der
+      Übersicht. Mit „Erinnerung (.ics)“ landet die Frist zusätzlich in deinem Kalender.
+    </span>
+  </p>
+
+  <app-recurring-form />
+
+  <dialog #letterDialog aria-labelledby="letter-title">
+    <div class="dialog-body">
+      <h2 id="letter-title">Kündigung: {{ letterItem()?.name }}</h2>
+      @if (profileIncomplete()) {
+        <p class="meta">
+          Tipp: Hinterlege Name und Adresse unter
+          <a routerLink="/profil" (click)="letterDialog.close()">Profil &amp; Daten</a>, dann werden
+          sie automatisch eingesetzt.
+        </p>
+      }
+      <label class="field">
+        Kündigungsschreiben
+        <textarea class="input" readonly [value]="letter()"></textarea>
+      </label>
+      <p class="meta">
+        Online abgeschlossene Verträge lassen sich auch über den „Verträge hier kündigen“-Button auf
+        der Website des Anbieters kündigen. Verschicke das Schreiben am besten per E-Mail mit
+        Lesebestätigung oder per Einschreiben.
+      </p>
+      <div class="form-actions" aria-live="polite">
+        <button type="button" class="btn" (click)="copyLetter()">
+          {{ copied() ? 'Kopiert ✓' : 'Text kopieren' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="downloadLetter()">
+          Als Textdatei speichern
+        </button>
+        @if (letterItem(); as item) {
+          <button type="button" class="btn btn-secondary" (click)="setStatus(item, 'prepared')">
+            Als vorbereitet markieren
+          </button>
+        }
+        <button type="button" class="btn btn-ghost" (click)="letterDialog.close()">
+          Schließen
+        </button>
+      </div>
+    </div>
+  </dialog>
+</main>

@@ -1,7 +1,7 @@
 {
-  "name": "Finance-Demo",
-  "short_name": "Finance-Demo",
-  "description": "Behalte dein monatliches Einkommen im Blick.",
+  "name": "Finanz-demo",
+  "short_name": "Finanz-demo",
+  "description": "Alle Finanzen an einem Ort: Einnahmen, Ausgaben, Vermögen, Sparziele, Verträge und Geldanlage.",
   "lang": "de",
   "dir": "ltr",
   "display": "standalone",

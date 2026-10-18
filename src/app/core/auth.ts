@@ -16,7 +16,9 @@ export class Auth {
     .then(({ data }) => this.sessionSignal.set(data.session ?? undefined));
 
   constructor() {
-    this.supabase.auth.onAuthStateChange((_event, session) => this.sessionSignal.set(session ?? undefined));
+    this.supabase.auth.onAuthStateChange((_event, session) =>
+      this.sessionSignal.set(session ?? undefined),
+    );
   }
 
   async signIn(email: string, password: string): Promise<void> {

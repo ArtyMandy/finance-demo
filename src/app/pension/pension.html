@@ -1,0 +1,178 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Gesetzlich, betrieblich, privat</span>
+      <h1>Altersvorsorge</h1>
+    </div>
+    <button type="button" class="btn" (click)="open()">Vorsorge hinzufügen</button>
+  </div>
+
+  <div class="grid-stats">
+    <div class="card card-dark stat">
+      <span class="label">Erwartete Rente / Monat</span>
+      <span class="stat-value">{{ eur(expected()) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Eigene Beiträge / Monat</span>
+      <span class="stat-value">{{ eur(contributions()) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Im Verhältnis zum heutigen Netto</span>
+      <span class="stat-value">{{ netIncome() ? pct(coverage()) : '–' }}</span>
+    </div>
+  </div>
+  <p class="meta">
+    Erwartete Renten sind Bruttowerte aus deinen Renteninformationen (z. B. jährliche
+    Renteninformation der Deutschen Rentenversicherung). Steuern, Sozialabgaben und Inflation sind
+    nicht berücksichtigt.
+  </p>
+
+  <section class="card" aria-labelledby="entries-heading">
+    <h2 id="entries-heading">Deine Vorsorge</h2>
+    @if (entries().length) {
+      <ul class="list">
+        @for (entry of entries(); track entry.id) {
+          <li>
+            <span class="list-main">
+              <span class="list-title">{{ entry.name }}</span>
+              <span class="meta">
+                {{ typeLabel(entry.type)
+                }}{{
+                  entry.monthlyContribution
+                    ? ' · Beitrag ' + eur(entry.monthlyContribution) + ' / Monat'
+                    : ''
+                }}
+              </span>
+            </span>
+            <span class="amount list-title">{{ eur(entry.expectedMonthly) }} / Monat</span>
+            <button type="button" class="btn btn-ghost btn-small" (click)="open(entry)">
+              Bearbeiten<span class="visually-hidden">: {{ entry.name }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">
+        Noch keine Vorsorge erfasst. Starte mit der gesetzlichen Rente aus deiner Renteninformation.
+      </p>
+    }
+  </section>
+
+  <div class="grid">
+    <app-pension-calculator />
+
+    <section class="card card-tint" aria-labelledby="avd-heading">
+      <h2 id="avd-heading">Altersvorsorgedepot ab 1. Januar 2027</h2>
+      <ul class="facts">
+        <li>
+          Beschlossen 2026, ersetzt Riester für neue Verträge. Förderberechtigt sind u. a.
+          Rentenversicherungspflichtige, Beamte und neu auch Selbstständige.
+        </li>
+        <li>
+          Grundzulage bis {{ eur(av.maxGrant) }}, Kinderzulage bis {{ eur(av.childLimit) }} je Kind,
+          einmalig {{ eur(av.starterBonus) }} Bonus bei Abschluss vor 25.
+        </li>
+        <li>
+          Mindestens {{ eur(av.minContribution) }}, höchstens {{ eur(av.maxContribution) }} pro
+          Jahr; höchstens {{ av.maxContracts }} geförderte Verträge.
+        </li>
+        <li>
+          Standarddepot mit Kostendeckel {{ pct(av.standardDepotMaxCost) }} p. a.; Fonds/ETFs bis
+          Risikoklasse 5, bis 100 % Aktien möglich, keine Krypto- oder Hebelprodukte.
+        </li>
+        <li>
+          In der Ansparphase steuerfrei (keine Vorabpauschale); die Auszahlung wird später voll
+          versteuert.
+        </li>
+        <li>
+          Auszahlung ab {{ av.payoutEarliestAge }}, spätestens mit {{ av.payoutLatestAge }}:
+          lebenslange Rente oder Auszahlplan bis mindestens 85.
+        </li>
+        <li>
+          Vorzeitige Entnahme ist förderschädlich (Ausnahme: selbstgenutztes Wohneigentum).
+          Anbieterwechsel nach 5 Jahren kostenlos.
+        </li>
+      </ul>
+    </section>
+
+    <section class="card" aria-labelledby="types-heading">
+      <h2 id="types-heading">Die Säulen im Überblick</h2>
+      <ul class="facts">
+        <li>
+          <strong>Gesetzliche Rente:</strong> Pflicht für Angestellte; Höhe laut jährlicher
+          Renteninformation.
+        </li>
+        <li>
+          <strong>Betriebliche Altersvorsorge:</strong> Entgeltumwandlung über den Arbeitgeber, oft
+          mit Zuschuss.
+        </li>
+        <li>
+          <strong>Riester:</strong> Bestehende Verträge laufen weiter (Bestandsschutz); ein Wechsel
+          ins Altersvorsorgedepot ist freiwillig, aber nicht umkehrbar.
+        </li>
+        <li>
+          <strong>Rürup (Basisrente):</strong> steuerlich absetzbar, vor allem für Selbstständige
+          interessant; nicht vererbbar oder kapitalisierbar.
+        </li>
+      </ul>
+    </section>
+
+    <section class="card card-dashed" aria-labelledby="fruehstart-heading">
+      <h2 id="fruehstart-heading">Frühstart-Rente</h2>
+      @if (fruehstart.active) {
+        <p>
+          {{ eur(fruehstart.monthlyAmount) }} pro Monat vom Staat für Kinder von
+          {{ fruehstart.ageFrom }} bis {{ fruehstart.ageTo }} Jahren.
+        </p>
+      } @else {
+        <p class="meta">
+          Geplant: {{ eur(fruehstart.monthlyAmount) }} pro Monat vom Staat für Kinder von
+          {{ fruehstart.ageFrom }} bis {{ fruehstart.ageTo }} Jahren ins Standarddepot, Start
+          geplant 1. Januar 2027. Der Bundestag hat das Gesetz am 16.10.2026 beschlossen, die
+          Zustimmung des Bundesrats steht noch aus. Die Planung wird freigeschaltet, sobald das
+          Gesetz verkündet ist.
+        </p>
+      }
+    </section>
+  </div>
+
+  <p class="disclaimer">Informationen und Berechnungen, keine Anlage- oder Steuerberatung.</p>
+
+  <dialog #dialog aria-labelledby="pension-title">
+    <form class="dialog-body" novalidate (submit)="save(); $event.preventDefault()">
+      <h2 id="pension-title">{{ editing() ? 'Vorsorge bearbeiten' : 'Vorsorge hinzufügen' }}</h2>
+      <div class="form">
+        <label class="field">
+          Art
+          <select [formField]="entryForm.type">
+            @for (type of types; track type[0]) {
+              <option [value]="type[0]">{{ type[1] }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          Bezeichnung / Anbieter
+          <input type="text" [formField]="entryForm.name" />
+          @if (entryForm.name().touched() && entryForm.name().errors().length) {
+            <span class="field-error">{{ entryForm.name().errors()[0].message }}</span>
+          }
+        </label>
+        <label class="field">
+          Erwartete Rente pro Monat (€)
+          <input type="number" inputmode="decimal" [formField]="entryForm.expectedMonthly" />
+        </label>
+        <label class="field">
+          Eigener Beitrag pro Monat (€)
+          <input type="number" inputmode="decimal" [formField]="entryForm.monthlyContribution" />
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn">Speichern</button>
+        <button type="button" class="btn btn-secondary" (click)="dialog.close()">Abbrechen</button>
+        @if (editing(); as entry) {
+          <button type="button" class="btn btn-danger" (click)="remove(entry)">Löschen</button>
+        }
+      </div>
+    </form>
+  </dialog>
+</main>

@@ -1,0 +1,222 @@
+<section class="card" aria-labelledby="holdings-heading">
+  <div class="spread">
+    <h2 id="holdings-heading">Depotpositionen</h2>
+    <button
+      type="button"
+      class="btn btn-small"
+      [disabled]="!depots().length"
+      (click)="openHolding()"
+    >
+      Position hinzufügen
+    </button>
+  </div>
+  @if (!depots().length) {
+    <p class="empty">Lege zuerst unter „Konten“ ein Konto der Art „Depot“ an.</p>
+  } @else if (rows().length) {
+    <div class="table-wrap">
+      <table>
+        <caption class="visually-hidden">
+          Depotpositionen mit Wert und Gewinn
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Position</th>
+            <th scope="col" class="amount">Stück</th>
+            <th scope="col" class="amount">Kaufkurs</th>
+            <th scope="col" class="amount">Kurs</th>
+            <th scope="col" class="amount">Wert</th>
+            <th scope="col" class="amount">Gewinn</th>
+            <th scope="col" class="amount">Sparplan</th>
+            <th scope="col"><span class="visually-hidden">Aktionen</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.holding.id) {
+            <tr>
+              <th scope="row">
+                {{ row.holding.name }}<br />
+                <span class="meta"
+                  >{{ assetLabel(row.holding.assetType)
+                  }}{{ row.holding.isin ? ' · ' + row.holding.isin : '' }}</span
+                >
+              </th>
+              <td class="amount">{{ row.holding.quantity }}</td>
+              <td class="amount">{{ eur(row.holding.buyPrice) }}</td>
+              <td class="amount">{{ eur(row.holding.currentPrice) }}</td>
+              <td class="amount">{{ eur(row.value) }}</td>
+              <td class="amount" [class.positive]="row.gain >= 0" [class.negative]="row.gain < 0">
+                {{ eur(row.gain) }}<br /><span class="meta">{{ pct(row.gainPct) }}</span>
+              </td>
+              <td class="amount">
+                {{ row.holding.savingsPlan ? eur(row.holding.savingsPlan) : '–' }}
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-small"
+                  (click)="openHolding(row.holding)"
+                >
+                  Bearbeiten<span class="visually-hidden">: {{ row.holding.name }}</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="meta">
+      Kurse trägst du selbst ein („Bearbeiten“); der Depotwert wird bei jeder Änderung für den
+      Verlauf gespeichert.
+    </p>
+  } @else {
+    <p class="empty">
+      Noch keine Positionen. Trage ETFs, Aktien oder Anleihen mit Stückzahl und Kurs ein.
+    </p>
+  }
+</section>
+
+<section class="card" aria-labelledby="dividends-heading">
+  <div class="spread">
+    <h2 id="dividends-heading">
+      Dividenden &amp; Ausschüttungen {{ dividends().length ? '· ' + eur(dividendTotal()) : '' }}
+    </h2>
+    <button
+      type="button"
+      class="btn btn-secondary btn-small"
+      [disabled]="!rows().length"
+      (click)="openDividend()"
+    >
+      Dividende erfassen
+    </button>
+  </div>
+  @if (dividends().length) {
+    <ul class="list">
+      @for (dividend of dividends(); track dividend.id) {
+        <li>
+          <span class="list-main">
+            <span class="list-title">{{ holdingName(dividend.holdingId) }}</span>
+            <span class="meta">{{ date(dividend.date) }}</span>
+          </span>
+          <span class="amount positive">{{ eur(dividend.amount) }}</span>
+          <button
+            type="button"
+            class="btn btn-ghost btn-small"
+            (click)="removeDividend(dividend.id)"
+          >
+            Löschen<span class="visually-hidden"
+              >: Dividende {{ holdingName(dividend.holdingId) }} am {{ date(dividend.date) }}</span
+            >
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="empty">In diesem Jahr noch keine Dividenden erfasst.</p>
+  }
+</section>
+
+<dialog #holdingDialog aria-labelledby="holding-title">
+  <form class="dialog-body" novalidate (submit)="saveHolding(); $event.preventDefault()">
+    <h2 id="holding-title">{{ editing() ? 'Position bearbeiten' : 'Position hinzufügen' }}</h2>
+    <div class="form">
+      <label class="field">
+        Depot
+        <select [formField]="holdingForm.accountId">
+          @for (depot of depots(); track depot.id) {
+            <option [value]="depot.id">{{ depot.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        Name
+        <input type="text" [formField]="holdingForm.name" />
+        @if (holdingForm.name().touched() && holdingForm.name().errors().length) {
+          <span class="field-error">{{ holdingForm.name().errors()[0].message }}</span>
+        }
+      </label>
+      <label class="field">
+        ISIN (optional)
+        <input type="text" autocapitalize="characters" [formField]="holdingForm.isin" />
+        @if (holdingForm.isin().touched() && holdingForm.isin().errors().length) {
+          <span class="field-error">{{ holdingForm.isin().errors()[0].message }}</span>
+        }
+      </label>
+      <label class="field">
+        Art
+        <select [formField]="holdingForm.assetType">
+          @for (type of assetTypes; track type[0]) {
+            <option [value]="type[0]">{{ type[1] }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        Stückzahl
+        <input type="number" inputmode="decimal" step="any" [formField]="holdingForm.quantity" />
+      </label>
+      <label class="field">
+        Ø Kaufkurs (€)
+        <input type="number" inputmode="decimal" step="0.01" [formField]="holdingForm.buyPrice" />
+      </label>
+      <label class="field">
+        Aktueller Kurs (€)
+        <input
+          type="number"
+          inputmode="decimal"
+          step="0.01"
+          [formField]="holdingForm.currentPrice"
+        />
+      </label>
+      <label class="field">
+        Sparplan pro Monat (€)
+        <input
+          type="number"
+          inputmode="decimal"
+          step="0.01"
+          [formField]="holdingForm.savingsPlan"
+        />
+      </label>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn">Speichern</button>
+      <button type="button" class="btn btn-secondary" (click)="holdingDialog.close()">
+        Abbrechen
+      </button>
+      @if (editing()) {
+        <button type="button" class="btn btn-danger" (click)="removeHolding()">Löschen</button>
+      }
+    </div>
+  </form>
+</dialog>
+
+<dialog #dividendDialog aria-labelledby="dividend-title">
+  <form class="dialog-body" novalidate (submit)="saveDividend(); $event.preventDefault()">
+    <h2 id="dividend-title">Dividende erfassen</h2>
+    <div class="form">
+      <label class="field">
+        Position
+        <select [formField]="dividendForm.holdingId">
+          @for (row of rows(); track row.holding.id) {
+            <option [value]="row.holding.id">{{ row.holding.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        Datum
+        <input type="date" [formField]="dividendForm.date" />
+      </label>
+      <label class="field">
+        Betrag (€)
+        <input type="number" inputmode="decimal" step="0.01" [formField]="dividendForm.amount" />
+        @if (dividendForm.amount().touched() && dividendForm.amount().errors().length) {
+          <span class="field-error">{{ dividendForm.amount().errors()[0].message }}</span>
+        }
+      </label>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn">Speichern</button>
+      <button type="button" class="btn btn-secondary" (click)="dividendDialog.close()">
+        Abbrechen
+      </button>
+    </div>
+  </form>
+</dialog>
