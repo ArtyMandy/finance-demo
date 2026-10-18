@@ -1,10 +1,21 @@
 import { NgOptimizedImage } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DOCUMENT,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AppInstall } from '../core/app-install';
 import { Auth } from '../core/auth';
+import { Clock } from '../core/clock';
 import { Connectivity } from '../core/connectivity';
+import { FinanceStore } from '../data/finance-store';
 import { FinanceSync } from '../data/finance-sync';
+import { downloadBackup } from '../shared/download';
 import { NavIcon } from './nav-icon';
 import { SECONDARY_NAV } from './nav-items';
 
@@ -99,6 +110,34 @@ const SYNC_LABELS = {
         </ul>
       </nav>
     }
+
+    <dialog #signOutDialog aria-labelledby="sign-out-title" aria-describedby="sign-out-text">
+      <div class="dialog-body">
+        <h2 id="sign-out-title">Daten sind nicht in der Cloud gesichert</h2>
+        <p id="sign-out-text">
+          Beim Abmelden werden deine Daten aus Datenschutzgründen von diesem Gerät gelöscht. Sie
+          konnten gerade nicht in der Cloud gespeichert werden{{
+            offline() ? ', weil du offline bist' : ''
+          }}. Lade vorher eine Sicherung herunter, um sie später unter „Profil &amp; Daten“
+          wiederherzustellen.
+        </p>
+        <div class="form-actions">
+          <button type="button" class="btn" (click)="downloadBackup()">
+            {{ backupSaved() ? 'Sicherung gespeichert ✓' : 'Sicherung herunterladen' }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="signOutDialog.close(); signOut(true)"
+          >
+            Trotzdem abmelden
+          </button>
+          <button type="button" class="btn btn-ghost" (click)="signOutDialog.close()">
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    </dialog>
   `,
   styleUrl: './site-header.css',
 })
@@ -108,6 +147,12 @@ export class SiteHeader {
   private readonly router = inject(Router);
   private readonly connectivity = inject(Connectivity);
   private readonly sync = inject(FinanceSync);
+  private readonly store = inject(FinanceStore);
+  private readonly clock = inject(Clock);
+  private readonly document = inject(DOCUMENT);
+  private readonly signOutDialog =
+    viewChild.required<ElementRef<HTMLDialogElement>>('signOutDialog');
+  protected readonly backupSaved = signal(false);
 
   protected readonly secondary = SECONDARY_NAV;
   protected readonly menuIcon = ['M4 7h16', 'M4 12h16', 'M4 17h16'];
@@ -122,13 +167,27 @@ export class SiteHeader {
     await this.appInstall.install();
   }
 
-  protected async signOut(): Promise<void> {
+  /**
+   * Saves pending changes to the cloud, then signs out (which removes the data from this
+   * device). If the data could not be saved, asks first so nothing is lost by accident.
+   */
+  protected async signOut(force = false): Promise<void> {
     this.busy.set(true);
     try {
-      await this.auth.signOut();
+      if (!force && !this.store.isEmpty() && !(await this.sync.flush())) {
+        this.backupSaved.set(false);
+        this.signOutDialog().nativeElement.showModal();
+        return;
+      }
+      await this.sync.signOut();
       await this.router.navigateByUrl('/');
     } finally {
       this.busy.set(false);
     }
+  }
+
+  protected downloadBackup(): void {
+    downloadBackup(this.document, this.store.data(), this.clock.today());
+    this.backupSaved.set(true);
   }
 }
