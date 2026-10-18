@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Übersicht</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0F766E}a:hover{color:#115E59}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F8FAFC; color: #12201A; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+  <div style="flex: 1 1 auto; padding: 24px 20px 12px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; color: #475569">Oktober 2026</span>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Deine Finanzen</h1>
+      </div>
+      <button aria-label="Profil" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #CBD5E1; background: #FFFFFF; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; color: #12201A">MA</button>
+    </div>
+
+    <div style="background: #12201A; color: #F8FAFC; border-radius: 20px; padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 13px; color: #B7C4BC">Gesamtvermögen</span>
+      <div style="display: flex; align-items: baseline; gap: 10px">
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">48.320 €</span>
+        <span style="font-size: 13px; font-weight: 600; color: #5EEAD4">+2,4 %</span>
+      </div>
+      <svg width="350" height="44" viewBox="0 0 350 44" aria-hidden="true" style="display: block; width: 100%"><polyline points="0,36 35,34 70,35 105,30 140,31 175,25 210,26 245,19 280,20 315,12 350,8" fill="none" stroke="#5EEAD4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+      <div style="display: flex; gap: 16px; font-size: 12px; color: #B7C4BC">
+        <span>Konten 14.870 €</span><span>Depots 31.950 €</span><span>Sonstiges 1.500 €</span>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Dieser Monat</h2>
+        <span style="font-size: 12px; color: #475569">noch 13 Tage</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #475569">Einnahmen</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums">3.850 €</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #475569">Ausgaben</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums">2.910 €</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #475569">Übrig</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: {{accent}}; font-variant-numeric: tabular-nums">940 €</span></div>
+      </div>
+      <div style="height: 8px; border-radius: 4px; background: #E2E8F0; display: flex; overflow: hidden">
+        <div style="width: 66%; background: #12201A"></div>
+        <div style="width: 10%; background: #C7772A"></div>
+      </div>
+      <div style="display: flex; gap: 14px; font-size: 12px; color: #475569">
+        <span>■ ausgegeben</span><span style="color: #8A4F16">■ noch geplant 420 €</span>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Ausgaben nach Kategorie</h2>
+        <a href="#" style="font-size: 13px; font-weight: 500; text-decoration: none">Alle</a>
+      </div>
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+          <span style="width: 96px; flex: 0 0 96px">{{c.name}}</span>
+          <div style="flex: 1 1 auto; height: 6px; border-radius: 3px; background: #E2E8F0; overflow: hidden"><div style="{{c.bar}}"></div></div>
+          <span style="width: 64px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500">{{c.amount}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <a href="Vertraege.dc.html" style="text-decoration: none; color: #12201A; background: #FBEFE2; border-radius: 20px; padding: 14px 16px; display: flex; gap: 12px; align-items: center">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8A4F16" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-4 12.7V16h8v-1.3A7 7 0 0 0 12 2z"></path></svg>
+      <span style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><strong style="font-size: 14px; font-weight: 600">Sparpotenzial: bis zu 23 € / Monat</strong><span style="font-size: 13px; color: #5C3A12">2 Streaming-Abos mit ähnlichem Angebot</span></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A4F16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="flex: 0 0 auto; height: 76px; box-sizing: border-box; padding: 8px 12px 18px; background: #FFFFFF; border-top: 1px solid #E2E8F0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+    <a href="Main.dc.html" aria-current="page" style="text-decoration: none; color: {{accent}}; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Übersicht</a>
+    <a href="Ziele.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg>Ziele</a>
+    <a href="Vertraege.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>Verträge</a>
+    <a href="Anlage.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>Anlage</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F766E","options":["#0F766E","#2B4FA3","#7A3E9D","#B4532A"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var accent = this.props.accent ?? '#0F766E';
+    var data = [
+      { name: 'Wohnen', v: 1150, amount: '1.150 €' },
+      { name: 'Lebensmittel', v: 480, amount: '480 €' },
+      { name: 'Mobilität', v: 290, amount: '290 €' },
+      { name: 'Freizeit', v: 260, amount: '260 €' },
+      { name: 'Abos', v: 89, amount: '89 €' }
+    ];
+    var max = 1150;
+    var cats = data.map(function (d) {
+      return { name: d.name, amount: d.amount, bar: 'height: 6px; border-radius: 3px; background: ' + accent + '; width: ' + Math.round(d.v / max * 100) + '%' };
+    });
+    return { accent: accent, cats: cats };
+  }
+}
+</script>
+</body>
+</html>

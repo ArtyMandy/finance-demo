@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Sparziele</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0F766E}a:hover{color:#115E59}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F8FAFC; color: #12201A; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+  <div style="flex: 1 1 auto; padding: 24px 20px 12px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; color: #475569">Insgesamt gespart: 11.000 €</span>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Sparziele</h1>
+      </div>
+      <button aria-label="Neues Sparziel anlegen" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #12201A; color: #F8FAFC; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+    </div>
+
+    <div role="tablist" aria-label="Filter" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #E2E8F0; border-radius: 14px">
+      <button role="tab" aria-selected="{{activeSel}}" onClick="{{showActive}}" style="{{activeTab}}">Aktiv (3)</button>
+      <button role="tab" aria-selected="{{doneSel}}" onClick="{{showDone}}" style="{{doneTab}}">Erreicht (1)</button>
+    </div>
+
+    <sc-if value="{{isActive}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{goals}}" as="g" hint-placeholder-count="3">
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">{{g.name}}</h2>
+                <span style="font-size: 13px; color: #475569">bis {{g.date}}</span>
+              </div>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums">{{g.pct}}</span>
+            </div>
+            <div style="height: 8px; border-radius: 4px; background: #E2E8F0; overflow: hidden"><div style="{{g.bar}}"></div></div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px">
+              <span style="font-variant-numeric: tabular-nums"><strong style="font-weight: 600">{{g.saved}}</strong> <span style="color: #475569">von {{g.target}}</span></span>
+              <span style="color: #475569">{{g.rate}} / Monat nötig</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Neuer Laptop</h2>
+          <span style="font-size: 13px; color: #475569">erreicht im März 2026 · 1.400 €</span>
+        </div>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>
+      </div>
+    </sc-if>
+
+    <div style="background: #E6F4F2; border-radius: 20px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#115E59" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: 0 0 auto"><path d="M12 3l8 3v6c0 4.5-3.4 8.1-8 9-4.6-.9-8-4.5-8-9V6z"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <strong style="font-size: 14px; font-weight: 600; color: #12201A">Notgroschen-Check</strong>
+        <span style="font-size: 13px; color: #115E59">Bei Fixkosten von 1.500 € empfehlen sich 3–6 Monatsausgaben Rücklage: 4.500–9.000 €. Du liegst im Zielkorridor.</span>
+      </div>
+    </div>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="flex: 0 0 auto; height: 76px; box-sizing: border-box; padding: 8px 12px 18px; background: #FFFFFF; border-top: 1px solid #E2E8F0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Übersicht</a>
+    <a href="Ziele.dc.html" aria-current="page" style="text-decoration: none; color: {{accent}}; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg>Ziele</a>
+    <a href="Vertraege.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>Verträge</a>
+    <a href="Anlage.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>Anlage</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F766E","options":["#0F766E","#2B4FA3","#7A3E9D","#B4532A"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'active' };
+  }
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent ?? '#0F766E';
+    var tabOn = 'min-height: 44px; border: none; border-radius: 10px; background: #FFFFFF; color: #12201A; font-family: inherit; font-size: 14px; font-weight: 600';
+    var tabOff = 'min-height: 44px; border: none; border-radius: 10px; background: transparent; color: #475569; font-family: inherit; font-size: 14px; font-weight: 500';
+    var isActive = this.state.tab === 'active';
+    var raw = [
+      { name: 'Notgroschen', date: 'Juni 2027', saved: 6000, target: 9000, rate: '375 €' },
+      { name: 'Urlaub Japan', date: 'August 2027', saved: 1800, target: 4000, rate: '220 €' },
+      { name: 'Neues Auto', date: 'Dezember 2029', saved: 3200, target: 15000, rate: '310 €' }
+    ];
+    var fmt = function (n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €'; };
+    var goals = raw.map(function (g) {
+      var p = Math.round(g.saved / g.target * 100);
+      return { name: g.name, date: g.date, saved: fmt(g.saved), target: fmt(g.target), rate: g.rate, pct: p + ' %', bar: 'height: 8px; border-radius: 4px; background: ' + accent + '; width: ' + p + '%' };
+    });
+    return {
+      accent: accent,
+      goals: goals,
+      isActive: isActive,
+      isDone: !isActive,
+      activeSel: isActive ? 'true' : 'false',
+      doneSel: isActive ? 'false' : 'true',
+      activeTab: isActive ? tabOn : tabOff,
+      doneTab: isActive ? tabOff : tabOn,
+      showActive: function () { self.setState({ tab: 'active' }); },
+      showDone: function () { self.setState({ tab: 'done' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

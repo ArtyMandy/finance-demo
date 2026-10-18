@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Finanz-App Web</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="min-height: 1000px; width: 100%; box-sizing: border-box; background: #F8FAFC; color: #12201A; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 16px; background: #12201A; color: #F8FAFC; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px">
+      <div style="width: 32px; height: 32px; border-radius: 10px; background: #5EEAD4; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#12201A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path></svg></div>
+      <span style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">[App-Name]</span>
+    </div>
+    <nav aria-label="Hauptnavigation" style="display: flex; flex-direction: column; gap: 4px">
+      <sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
+        <button onClick="{{n.pick}}" aria-current="{{n.current}}" style="{{n.style}}">
+          <sc-if value="{{n.isHome}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg></sc-if>
+          <sc-if value="{{n.isGoals}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg></sc-if>
+          <sc-if value="{{n.isContracts}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M9 11h6"></path><path d="M9 15h6"></path></svg></sc-if>
+          <sc-if value="{{n.isInvest}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg></sc-if>
+          <span>{{n.label}}</span>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+      <div style="border-radius: 14px; background: #1E3029; padding: 14px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 13px; font-weight: 600">5 Konten verbunden</span>
+        <span style="font-size: 12px; color: #B7C4BC">Zuletzt aktualisiert: heute, 09:12</span>
+      </div>
+      <button style="min-height: 44px; border-radius: 12px; border: 1px solid #3A4A41; background: transparent; color: #F8FAFC; font-family: inherit; font-size: 14px; font-weight: 600">+ Konto verbinden</button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(16px, 3vw, 40px) 40px; display: flex; flex-direction: column; gap: 20px">
+    <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; color: #475569">Oktober 2026</span>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">{{title}}</h1>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center">
+        <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #475569">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+          <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buchungen suchen</span>
+          <input type="search" placeholder="Buchungen suchen" style="border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px; width: 180px; color: #12201A">
+        </label>
+        <button aria-label="Profil" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #CBD5E1; background: #FFFFFF; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; color: #12201A">MA</button>
+      </div>
+    </header>
+
+    <sc-if value="{{isHome}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 20px">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px">
+          <div style="background: #12201A; color: #F8FAFC; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 13px; color: #B7C4BC">Gesamtvermögen</span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums">48.320 €</span>
+            <span style="font-size: 13px; font-weight: 600; color: #5EEAD4">+2,4 % ggü. Vormonat</span>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 13px; color: #475569">Einnahmen</span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums">3.850 €</span>
+            <span style="font-size: 13px; color: #475569">Gehalt, Erstattungen</span>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 13px; color: #475569">Ausgaben</span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums">2.910 €</span>
+            <span style="font-size: 13px; color: #8A4F16">+ 420 € noch geplant</span>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 13px; color: #475569">Sparquote</span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; color: {{accent}}; font-variant-numeric: tabular-nums">24 %</span>
+            <span style="font-size: 13px; color: #475569">940 € übrig</span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 16px">
+          <section style="flex: 2 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+              <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Vermögensentwicklung</h2>
+              <span style="font-size: 13px; color: #475569">letzte 12 Monate</span>
+            </div>
+            <svg viewBox="0 0 600 200" preserveAspectRatio="none" role="img" aria-label="Vermögen stieg in 12 Monaten von rund 39.000 auf 48.320 Euro" style="display: block; width: 100%; height: 200px">
+              <line x1="0" y1="50" x2="600" y2="50" stroke="#E2E8F0" stroke-width="1"></line>
+              <line x1="0" y1="100" x2="600" y2="100" stroke="#E2E8F0" stroke-width="1"></line>
+              <line x1="0" y1="150" x2="600" y2="150" stroke="#E2E8F0" stroke-width="1"></line>
+              <polyline points="0,170 55,165 110,168 165,150 220,152 275,135 330,138 385,115 440,118 495,92 550,85 600,62" fill="none" stroke="{{accent}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>
+            </svg>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #475569"><span>Nov 2025</span><span>Apr 2026</span><span>Okt 2026</span></div>
+          </section>
+
+          <section style="flex: 1 1 300px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+            <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Ausgaben nach Kategorie</h2>
+            <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <div style="display: flex; justify-content: space-between; font-size: 14px"><span>{{c.name}}</span><span style="font-weight: 500; font-variant-numeric: tabular-nums">{{c.amount}}</span></div>
+                <div style="height: 6px; border-radius: 3px; background: #E2E8F0; overflow: hidden"><div style="{{c.bar}}"></div></div>
+              </div>
+            </sc-for>
+          </section>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 16px">
+          <section style="flex: 2 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Diesen Monat noch geplant</h2>
+            <sc-for list="{{upcoming}}" as="u" hint-placeholder-count="4">
+              <div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #F1F5F9; font-size: 14px">
+                <span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500">{{u.name}}</span><span style="font-size: 12px; color: #475569">{{u.date}}</span></span>
+                <span style="font-weight: 600; font-variant-numeric: tabular-nums">{{u.amount}}</span>
+              </div>
+            </sc-for>
+          </section>
+          <button onClick="{{goContracts}}" style="flex: 1 1 300px; min-width: 0; text-align: left; cursor: pointer; border: none; background: #FBEFE2; border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; font-family: inherit; color: #12201A">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8A4F16" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-4 12.7V16h8v-1.3A7 7 0 0 0 12 2z"></path></svg>
+            <strong style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Bis zu 412 € im Jahr sparen</strong>
+            <span style="font-size: 14px; color: #5C3A12">2 ähnliche Streaming-Abos und ein kaum genutztes Fitnessstudio gefunden.</span>
+            <span style="font-size: 14px; font-weight: 600; color: #8A4F16">Verträge ansehen →</span>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isGoals}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px">
+          <sc-for list="{{goals}}" as="g" hint-placeholder-count="3">
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">{{g.name}}</h2>
+                  <span style="font-size: 13px; color: #475569">bis {{g.date}}</span>
+                </div>
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums">{{g.pct}}</span>
+              </div>
+              <div style="height: 8px; border-radius: 4px; background: #E2E8F0; overflow: hidden"><div style="{{g.bar}}"></div></div>
+              <div style="display: flex; justify-content: space-between; font-size: 13px; gap: 8px; flex-wrap: wrap">
+                <span style="font-variant-numeric: tabular-nums"><strong style="font-weight: 600">{{g.saved}}</strong> <span style="color: #475569">von {{g.target}}</span></span>
+                <span style="color: #475569">{{g.rate}} / Monat</span>
+              </div>
+            </div>
+          </sc-for>
+          <button style="min-height: 140px; border: 1.5px dashed #94A3B8; background: transparent; border-radius: 18px; font-family: inherit; font-size: 15px; font-weight: 600; color: #115E59">+ Neues Sparziel</button>
+        </div>
+        <div style="background: #E6F4F2; border-radius: 18px; padding: 16px 20px; display: flex; gap: 14px; align-items: flex-start">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#115E59" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: 0 0 auto"><path d="M12 3l8 3v6c0 4.5-3.4 8.1-8 9-4.6-.9-8-4.5-8-9V6z"></path></svg>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <strong style="font-size: 15px; font-weight: 600">Notgroschen-Check</strong>
+            <span style="font-size: 14px; color: #115E59">Bei Fixkosten von 1.500 € empfehlen sich 3–6 Monatsausgaben Rücklage: 4.500–9.000 €. Du liegst im Zielkorridor.</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isContracts}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #475569">Erkannte Verträge</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600">14</span></div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #475569">Fixkosten / Monat</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums">1.502 €</span></div>
+          <div style="background: #FBEFE2; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5C3A12">Sparpotenzial / Jahr</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; color: #8A4F16; font-variant-numeric: tabular-nums">bis 412 €</span></div>
+        </div>
+        <section style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 8px 20px 12px">
+          <div style="overflow-x: auto">
+            <table style="width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14px">
+              <thead>
+                <tr style="text-align: left; color: #475569; font-size: 12px">
+                  <th style="padding: 12px 8px 10px 0; font-weight: 500">Vertrag</th>
+                  <th style="padding: 12px 8px 10px; font-weight: 500">Kategorie</th>
+                  <th style="padding: 12px 8px 10px; font-weight: 500">Kündigungsfrist</th>
+                  <th style="padding: 12px 8px 10px; font-weight: 500; text-align: right">Betrag</th>
+                  <th style="padding: 12px 0 10px 8px; font-weight: 500; text-align: right">Aktion</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{contracts}}" as="k" hint-placeholder-count="5">
+                  <tr style="border-top: 1px solid #F1F5F9">
+                    <td style="padding: 12px 8px 12px 0"><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">{{k.name}}</span><sc-if value="{{k.hint}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 500; color: #8A4F16">{{k.hint}}</span></sc-if></span></td>
+                    <td style="padding: 12px 8px; color: #475569">{{k.cat}}</td>
+                    <td style="padding: 12px 8px; color: #475569">{{k.term}}</td>
+                    <td style="padding: 12px 8px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">{{k.price}}</td>
+                    <td style="padding: 12px 0 12px 8px; text-align: right">
+                      <sc-if value="{{k.done}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; font-weight: 600; color: {{accent}}">Vorbereitet ✓</span></sc-if>
+                      <sc-if value="{{k.open}}" hint-placeholder-val="{{ true }}"><button onClick="{{k.cancel}}" style="min-height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid #12201A; background: #FFFFFF; color: #12201A; font-family: inherit; font-size: 13px; font-weight: 600">Kündigen</button></sc-if>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isInvest}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <section style="flex: 3 1 420px; min-width: 0; background: #12201A; color: #F8FAFC; border-radius: 18px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px">
+            <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Sparplan-Rechner</h2>
+            <span style="font-size: 13px; color: #B7C4BC">Depots: 31.950 € · +4.210 € seit Kauf</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; color: #B7C4BC">Monatliche Rate</span>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+              <sc-for list="{{rates}}" as="r" hint-placeholder-count="4"><button onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="{{r.style}}">{{r.label}}</button></sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; color: #B7C4BC">Laufzeit</span>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+              <sc-for list="{{years}}" as="y" hint-placeholder-count="4"><button onClick="{{y.pick}}" aria-pressed="{{y.pressed}}" style="{{y.style}}">{{y.label}}</button></sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; padding-top: 12px; border-top: 1px solid #2E3D35">
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 13px; color: #B7C4BC">Mögliches Endvermögen</span>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 600; color: #5EEAD4; font-variant-numeric: tabular-nums">{{result}}</span>
+            </div>
+            <span style="font-size: 13px; color: #B7C4BC">eingezahlt {{paid}} · Annahme 6 % p. a., keine Garantie</span>
+          </div>
+        </section>
+        <div style="flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <section style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; justify-content: space-between; align-items: center"><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Freistellungsaufträge</h2><span style="font-size: 13px; font-weight: 600; color: #8A4F16">200 € frei</span></div>
+            <div style="height: 8px; border-radius: 4px; background: #E2E8F0; display: flex; overflow: hidden"><div style="width: 50%; background: #12201A"></div><div style="width: 30%; background: {{accent}}"></div></div>
+            <span style="font-size: 13px; color: #475569">Hausbank 500 € · Broker 300 € · Sparerpauschbetrag 1.000 €</span>
+          </section>
+          <section style="background: #E6F4F2; border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+            <strong style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Neu ab 2027: Altersvorsorgedepot</strong>
+            <span style="font-size: 14px; color: #115E59">Staatlich gefördert, bis zu 540 € Grundzulage im Jahr plus Kinderzulage.</span>
+            <a href="#" style="font-size: 14px; font-weight: 600; color: #115E59">Förderung berechnen →</a>
+          </section>
+          <span style="font-size: 12px; color: #475569">Informationen und Berechnungen, keine Anlageberatung.</span>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F766E","options":["#0F766E","#2B4FA3","#7A3E9D","#B4532A"]},"startSection":{"editor":"enum","options":["home","goals","contracts","invest"],"default":"home"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { section: null, rate: 250, years: 20, cancelled: {} };
+  }
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent ?? '#0F766E';
+    var section = this.state.section || this.props.startSection || 'home';
+    var fmt = function (n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €'; };
+    var go = function (s) { return function () { self.setState({ section: s }); }; };
+
+    var navOn = 'display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border: none; border-radius: 12px; background: #5EEAD4; color: #12201A; font-family: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer';
+    var navOff = 'display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border: none; border-radius: 12px; background: transparent; color: #D6DFD9; font-family: inherit; font-size: 15px; font-weight: 500; text-align: left; cursor: pointer';
+    var titles = { home: 'Übersicht', goals: 'Sparziele', contracts: 'Verträge & Abos', invest: 'Geldanlage' };
+    var nav = [['home', 'Übersicht'], ['goals', 'Sparziele'], ['contracts', 'Verträge'], ['invest', 'Geldanlage']].map(function (n) {
+      var a = section === n[0];
+      return { label: n[1], style: a ? navOn : navOff, current: a ? 'page' : 'false', pick: go(n[0]), isHome: n[0] === 'home', isGoals: n[0] === 'goals', isContracts: n[0] === 'contracts', isInvest: n[0] === 'invest' };
+    });
+
+    var catData = [['Wohnen', 1150], ['Lebensmittel', 480], ['Mobilität', 290], ['Freizeit', 260], ['Abos', 89]];
+    var cats = catData.map(function (c) {
+      return { name: c[0], amount: fmt(c[1]), bar: 'height: 6px; border-radius: 3px; background: ' + accent + '; width: ' + Math.round(c[1] / 1150 * 100) + '%' };
+    });
+    var upcoming = [
+      { name: 'Stromabschlag', date: '20. Oktober', amount: '−86 €' },
+      { name: 'Kfz-Versicherung', date: '25. Oktober', amount: '−212 €' },
+      { name: 'ETF-Sparplan', date: '28. Oktober', amount: '−100 €' },
+      { name: 'Handyvertrag', date: '30. Oktober', amount: '−22 €' }
+    ];
+
+    var goals = [
+      ['Notgroschen', 'Juni 2027', 6000, 9000, '375 €'],
+      ['Urlaub Japan', 'August 2027', 1800, 4000, '220 €'],
+      ['Neues Auto', 'Dezember 2029', 3200, 15000, '310 €']
+    ].map(function (g) {
+      var p = Math.round(g[2] / g[3] * 100);
+      return { name: g[0], date: g[1], saved: fmt(g[2]), target: fmt(g[3]), rate: g[4], pct: p + ' %', bar: 'height: 8px; border-radius: 4px; background: ' + accent + '; width: ' + p + '%' };
+    });
+
+    var cc = this.state.cancelled;
+    var contracts = [
+      ['a', 'Streaming A', 'Unterhaltung', 'monatlich', '13,99 €', 'Ähnlich wie Streaming B'],
+      ['b', 'Streaming B', 'Unterhaltung', 'monatlich', '9,99 €', 'Ähnlich wie Streaming A'],
+      ['c', 'Fitnessstudio', 'Freizeit', '30. November 2026', '39,90 €', 'Seit 3 Monaten kein Check-in'],
+      ['d', 'Handyvertrag', 'Kommunikation', '15. Januar 2027', '34,99 €', ''],
+      ['e', 'Hausratversicherung', 'Versicherung', '1. Dezember 2026', '8,50 €', '']
+    ].map(function (k) {
+      var done = !!cc[k[0]];
+      return { name: k[1], cat: k[2], term: k[3], price: k[4], hint: k[5], done: done, open: !done,
+        cancel: function () { var n = Object.assign({}, self.state.cancelled); n[k[0]] = true; self.setState({ cancelled: n }); } };
+    });
+
+    var on = 'min-height: 44px; border-radius: 12px; border: none; background: #5EEAD4; color: #12201A; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer';
+    var off = 'min-height: 44px; border-radius: 12px; border: 1px solid #3A4A41; background: transparent; color: #F8FAFC; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer';
+    var rates = [50, 100, 250, 500].map(function (v) {
+      var a = self.state.rate === v;
+      return { label: v + ' €', pressed: a ? 'true' : 'false', style: a ? on : off, pick: function () { self.setState({ rate: v }); } };
+    });
+    var years = [10, 20, 30, 40].map(function (v) {
+      var a = self.state.years === v;
+      return { label: v + ' J.', pressed: a ? 'true' : 'false', style: a ? on : off, pick: function () { self.setState({ years: v }); } };
+    });
+    var i = 0.06 / 12;
+    var n = this.state.years * 12;
+    var fv = this.state.rate * (Math.pow(1 + i, n) - 1) / i;
+
+    return {
+      accent: accent,
+      title: titles[section],
+      nav: nav,
+      isHome: section === 'home', isGoals: section === 'goals', isContracts: section === 'contracts', isInvest: section === 'invest',
+      cats: cats, upcoming: upcoming, goals: goals, contracts: contracts,
+      goContracts: go('contracts'),
+      rates: rates, years: years, result: fmt(fv), paid: fmt(this.state.rate * n)
+    };
+  }
+}
+</script>
+</body>
+</html>
