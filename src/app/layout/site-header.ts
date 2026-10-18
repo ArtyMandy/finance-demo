@@ -1,6 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AppInstall } from '../core/app-install';
 import { Auth } from '../core/auth';
 import { Connectivity } from '../core/connectivity';
 
@@ -26,23 +27,45 @@ import { Connectivity } from '../core/connectivity';
           </a>
         </nav>
       </div>
-      <nav aria-label="Konto" class="account">
-        @if (auth.user(); as user) {
-          <span class="email">{{ user.email }}</span>
-          <button type="button" class="button" [disabled]="busy() || offline()" (click)="signOut()">
-            Abmelden
+      <div class="end">
+        @if (appInstall.canInstall()) {
+          <button type="button" class="button button-secondary install" (click)="install()">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+              <path
+                d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            App installieren
           </button>
-        } @else {
-          <a routerLink="/anmelden" class="button">Anmelden</a>
-          <a
-            routerLink="/anmelden"
-            [queryParams]="{ modus: 'registrieren' }"
-            class="button button-secondary"
-          >
-            Registrieren
-          </a>
         }
-      </nav>
+        <nav aria-label="Konto" class="account">
+          @if (auth.user(); as user) {
+            <span class="email">{{ user.email }}</span>
+            <button
+              type="button"
+              class="button"
+              [disabled]="busy() || offline()"
+              (click)="signOut()"
+            >
+              Abmelden
+            </button>
+          } @else {
+            <a routerLink="/anmelden" class="button">Anmelden</a>
+            <a
+              routerLink="/anmelden"
+              [queryParams]="{ modus: 'registrieren' }"
+              class="button button-secondary"
+            >
+              Registrieren
+            </a>
+          }
+        </nav>
+      </div>
     </header>
   `,
   styles: `
@@ -58,6 +81,7 @@ import { Connectivity } from '../core/connectivity';
     }
 
     .start,
+    .end,
     .account {
       display: flex;
       flex-wrap: wrap;
@@ -65,8 +89,15 @@ import { Connectivity } from '../core/connectivity';
       gap: 0.75rem 1.5rem;
     }
 
+    .end,
     .account {
       gap: 0.75rem;
+    }
+
+    .install {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .brand {
@@ -105,11 +136,16 @@ import { Connectivity } from '../core/connectivity';
 })
 export class SiteHeader {
   protected readonly auth = inject(Auth);
+  protected readonly appInstall = inject(AppInstall);
   private readonly router = inject(Router);
   private readonly connectivity = inject(Connectivity);
 
   protected readonly offline = computed(() => !this.connectivity.online());
   protected readonly busy = signal(false);
+
+  protected async install(): Promise<void> {
+    await this.appInstall.install();
+  }
 
   protected async signOut(): Promise<void> {
     this.busy.set(true);
