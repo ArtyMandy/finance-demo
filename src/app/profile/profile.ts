@@ -8,7 +8,7 @@ import { createDemoData } from '../data/demo-data';
 import { FinanceStore, normalizeData } from '../data/finance-store';
 import { FinanceSync } from '../data/finance-sync';
 import { ChurchTax, RULES } from '../rules/rules';
-import { downloadText } from '../shared/download';
+import { downloadBackup, downloadText } from '../shared/download';
 import { formatDate } from '../shared/format';
 
 const csvField = (value: string | number) => {
@@ -66,12 +66,7 @@ export class Profile {
   }
 
   protected exportBackup(): void {
-    downloadText(
-      this.document,
-      `finanz-demo-sicherung-${this.clock.today()}.json`,
-      JSON.stringify(this.store.data(), null, 2),
-      'application/json',
-    );
+    downloadBackup(this.document, this.store.data(), this.clock.today());
     this.notify('Sicherung wurde erstellt.');
   }
 

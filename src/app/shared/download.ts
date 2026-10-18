@@ -26,3 +26,13 @@ export function slug(text: string): string {
       .replace(/^-|-$/g, '') || 'datei'
   );
 }
+
+/** Saves all finance data as a JSON backup that "Profil & Daten" can restore. */
+export function downloadBackup(document: Document, data: unknown, today: string): void {
+  downloadText(
+    document,
+    `finanz-demo-sicherung-${today}.json`,
+    JSON.stringify(data, null, 2),
+    'application/json',
+  );
+}

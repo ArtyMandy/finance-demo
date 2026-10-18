@@ -17,6 +17,7 @@ import {
 import { addMonths } from './months';
 
 const STORAGE_KEY = 'finanz-demo:data:v1';
+const OWNER_KEY = 'finanz-demo:owner';
 
 type ListKey =
   | 'accounts'
@@ -62,16 +63,36 @@ export class FinanceStore {
   private readonly storage = inject(DOCUMENT).defaultView?.localStorage;
   private readonly clock = inject(Clock);
   private readonly state = signal<FinanceData>(this.load());
+  private readonly ownerState = signal(this.read(OWNER_KEY) ?? '');
 
   readonly data = this.state.asReadonly();
+  /** User id the local data belongs to; empty while it was entered without signing in. */
+  readonly owner = this.ownerState.asReadonly();
   readonly isEmpty = computed(() => {
     const d = this.state();
     return !d.accounts.length && !d.recurring.length && !d.transactions.length && !d.goals.length;
   });
 
+  private read(key: string): string | null {
+    try {
+      return this.storage?.getItem(key) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  private write(key: string, value: string | undefined): void {
+    try {
+      if (value === undefined) this.storage?.removeItem(key);
+      else this.storage?.setItem(key, value);
+    } catch {
+      // Storage full or blocked (private mode); data stays in memory for this session.
+    }
+  }
+
   private load(): FinanceData {
     try {
-      const text = this.storage?.getItem(STORAGE_KEY);
+      const text = this.read(STORAGE_KEY);
       return text ? normalizeData(JSON.parse(text)) : emptyFinanceData();
     } catch {
       return emptyFinanceData();
@@ -81,11 +102,24 @@ export class FinanceStore {
   /** Saves right away (not in an effect), so nothing is lost when the tab closes. */
   private set(data: FinanceData): void {
     this.state.set(data);
-    try {
-      this.storage?.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      // Storage full or blocked (private mode); data stays in memory for this session.
-    }
+    this.write(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  /** Marks the local data as belonging to a signed-in user. */
+  setOwner(userId: string): void {
+    this.ownerState.set(userId);
+    this.write(OWNER_KEY, userId || undefined);
+  }
+
+  /**
+   * Removes all data from this device, e.g. after signing out, so the next person using the
+   * browser cannot see it. The cloud copy is untouched; the epoch timestamp makes sure this
+   * empty state never overwrites it.
+   */
+  clearLocal(): void {
+    this.state.set(emptyFinanceData());
+    this.write(STORAGE_KEY, undefined);
+    this.setOwner('');
   }
 
   private change(update: (data: FinanceData) => FinanceData): void {
