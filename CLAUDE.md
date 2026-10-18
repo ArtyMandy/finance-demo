@@ -1,5 +1,15 @@
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
+## Product Docs
+
+Read these before building features; they are written in German.
+
+- `docs/app-idee.md` – goal, target group and feature list (must-have / nice-to-have) of Finanz-demo
+- `docs/design/README.md` – screens, navigation, color tokens, typography and spacing; the design drafts are in `docs/design/screens/*.dc.html` (reference only, sample data)
+- `docs/regeln-foerderung-steuern.md` – rules and formulas for Altersvorsorgedepot, Kapitalertragsteuer, Wohnungsbauprämie and VL-Sparen (as of 18.10.2026); use these values for calculators and keep them in one place in code so they can be updated yearly
+
+Product constraints: no bank connections (manual entry and ING CSV import only), no personalized investment advice.
+
 ## Skills and Tooling
 
 - Before writing or changing any Angular code (components, services, routing, forms, tests), load the `angular-developer` skill.

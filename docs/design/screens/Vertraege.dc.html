@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Verträge und Sparpotenzial</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0F766E}a:hover{color:#115E59}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F8FAFC; color: #12201A; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+  <div style="flex: 1 1 auto; padding: 24px 20px 12px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 13px; color: #475569">14 Verträge erkannt</span>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Verträge &amp; Abos</h1>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; color: #475569">Fixkosten / Monat</span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums">1.502 €</span>
+      </div>
+      <div style="background: #FBEFE2; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; color: #5C3A12">Sparpotenzial / Jahr</span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; color: #8A4F16; font-variant-numeric: tabular-nums">bis 412 €</span>
+      </div>
+    </div>
+
+    <h2 style="margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Bald kündbar</h2>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; padding: 4px 16px; display: flex; flex-direction: column">
+      <sc-for list="{{items}}" as="it" hint-placeholder-count="4">
+        <div style="{{it.rowStyle}}">
+          <div style="width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; color: #115E59">{{it.initial}}</div>
+          <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+            <span style="font-size: 15px; font-weight: 600">{{it.name}}</span>
+            <span style="font-size: 12px; color: #475569">{{it.meta}}</span>
+            <sc-if value="{{it.hint}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 500; color: #8A4F16">{{it.hint}}</span></sc-if>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+            <span style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">{{it.price}}</span>
+            <sc-if value="{{it.done}}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 12px; font-weight: 600; color: {{accent}}">Vorbereitet ✓</span>
+            </sc-if>
+            <sc-if value="{{it.open}}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{it.cancel}}" style="min-height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid #12201A; background: #FFFFFF; color: #12201A; font-family: inherit; font-size: 12px; font-weight: 600">Kündigen</button>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px dashed #94A3B8; border-radius: 18px; padding: 12px 16px; display: flex; gap: 10px; align-items: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#115E59" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: 0 0 auto"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2"></path><path d="M9 2h6"></path></svg>
+      <span style="font-size: 13px; color: #115E59">Vertragswecker: Wir erinnern dich 30 Tage vor jeder Kündigungsfrist.</span>
+    </div>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="flex: 0 0 auto; height: 76px; box-sizing: border-box; padding: 8px 12px 18px; background: #FFFFFF; border-top: 1px solid #E2E8F0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Übersicht</a>
+    <a href="Ziele.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg>Ziele</a>
+    <a href="Vertraege.dc.html" aria-current="page" style="text-decoration: none; color: {{accent}}; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>Verträge</a>
+    <a href="Anlage.dc.html" style="text-decoration: none; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>Anlage</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F766E","options":["#0F766E","#2B4FA3","#7A3E9D","#B4532A"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cancelled: {} };
+  }
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent ?? '#0F766E';
+    var raw = [
+      { id: 'a', name: 'Streaming A', meta: 'monatlich kündbar', price: '13,99 €', hint: 'Ähnlich wie Streaming B' },
+      { id: 'b', name: 'Streaming B', meta: 'monatlich kündbar', price: '9,99 €', hint: 'Ähnlich wie Streaming A' },
+      { id: 'c', name: 'Fitnessstudio', meta: 'Frist: 30. November 2026', price: '39,90 €', hint: 'Seit 3 Monaten kein Check-in' },
+      { id: 'd', name: 'Handyvertrag', meta: 'Frist: 15. Januar 2027', price: '34,99 €', hint: '' }
+    ];
+    var c = this.state.cancelled;
+    var items = raw.map(function (r, i) {
+      var done = !!c[r.id];
+      return {
+        name: r.name, meta: r.meta, price: r.price, hint: r.hint,
+        initial: r.name.charAt(0),
+        done: done, open: !done,
+        rowStyle: 'display: flex; gap: 12px; align-items: center; padding: 12px 0;' + (i < raw.length - 1 ? ' border-bottom: 1px solid #F1F5F9;' : ''),
+        cancel: function () { var n = Object.assign({}, self.state.cancelled); n[r.id] = true; self.setState({ cancelled: n }); }
+      };
+    });
+    return { accent: accent, items: items };
+  }
+}
+</script>
+</body>
+</html>

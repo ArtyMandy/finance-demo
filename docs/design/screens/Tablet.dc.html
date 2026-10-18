@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Finanz-App Tablet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 834px; height: 1194px; overflow: hidden; background: #F8FAFC; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #12201A">
+  <dc-import name="Desktop" accent="{{accent}}" start-section="home" hint-size="834px,1194px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F766E","options":["#0F766E","#2B4FA3","#7A3E9D","#B4532A"]},"$preview":{"width":834,"height":1194}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#0F766E' };
+  }
+}
+</script>
+</body>
+</html>
