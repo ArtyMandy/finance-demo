@@ -27,10 +27,10 @@
 **Überblick & Transparenz**
 - **Konten erfassen:** Girokonten, Kreditkarten, Tagesgeld und Depots als eigene Konten mit aktuellem Kontostand bzw. Wert anlegen, ohne Bankverbindung.
 - **Buchungen erfassen:** Buchungen manuell eintragen oder per CSV-Datei aus dem Umsatzexport der ING importieren. Beim Import werden doppelte Buchungen erkannt und übersprungen. Buchungen dienen **nur** dazu, wiederkehrende Einnahmen und Ausgaben zu erkennen; sie fließen weder in Statistiken noch in Kontostände ein.
-- **Einnahmen definieren:** Einnahmequellen (z. B. Gehalt, Nebenjob, Kindergeld) mit Nettobetrag und Rhythmus anlegen: einmalig, monatlich, quartalsweise oder jährlich. Jede Einnahme gilt **ab Monat** und optional **bis Monat** (leer = unbefristet). Ändert sich ein Betrag, z. B. durch eine Gehaltserhöhung, beginnt ab dem neuen Monat ein neuer Zeitraum, die Historie bleibt erhalten. Feste Ausgaben funktionieren nach demselben Prinzip.
+- **Einnahmen definieren:** Einnahmequellen (z. B. Gehalt, Nebenjob, Kindergeld) mit Nettobetrag und Rhythmus anlegen: einmalig, monatlich, quartalsweise oder jährlich. Jede Einnahme gilt **ab Monat** und optional **bis Monat** (leer = unbefristet). Ändert sich ein Betrag, z. B. durch eine Gehaltserhöhung, beginnt ab dem neuen Monat ein neuer Zeitraum, die Historie bleibt erhalten. Feste Ausgaben funktionieren nach demselben Prinzip. Bei einer festen Ausgabe kann ein eigenes Konto oder Depot angegeben werden, auf dem das Geld landet (z. B. Sparrate, ETF-Sparplan); sie zählt dann als Sparen statt als Ausgabe.
 - **Automatische Kategorisierung:** Buchungen werden Kategorien zugeordnet (Wohnen, Lebensmittel, Mobilität …), manuell korrigierbar; erkannte Einnahmen und Ausgaben übernehmen die Kategorie.
 - **Einnahmen-/Ausgaben-Analyse:** Monats- und Jahresauswertungen, Verlauf, Vergleich zum Vormonat. Alle Statistiken (Übersicht, Budgets, Auswertung) beruhen ausschließlich auf den definierten Einnahmen & Ausgaben und den Konten.
-- **Vermögensübersicht:** Gesamtvermögen (Konten, Depots, Sachwerte) minus Schulden, mit Entwicklung über die Zeit.
+- **Vermögensübersicht:** Gesamtvermögen (Konten, Depots, Sachwerte) minus Schulden, mit Entwicklung über die Zeit. Sachwerte und Schulden lassen sich auf der Startseite per Checkbox ein- oder ausblenden.
 - **Vorschau:** Welche Einnahmen und Ausgaben in diesem Monat fällig sind und was übrig bleibt.
 
 **Sparpotenzial**

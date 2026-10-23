@@ -1,7 +1,14 @@
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { form, FormField, required, submit } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
-import { accountBalance, holdingsValue, isCash, wealthBreakdown } from '../data/analytics';
+import { Clock } from '../core/clock';
+import {
+  accountBalance,
+  holdingsValue,
+  isCash,
+  monthlyInflow,
+  wealthBreakdown,
+} from '../data/analytics';
 import { FinanceStore, newId } from '../data/finance-store';
 import { Account, ACCOUNT_TYPE_LABELS, AccountType } from '../data/models';
 import { formatDate, formatEuro } from '../shared/format';
@@ -15,6 +22,7 @@ const CASH_TYPES = new Set<string>(['giro', 'kreditkarte', 'tagesgeld']);
 })
 export class Accounts {
   private readonly store = inject(FinanceStore);
+  private readonly clock = inject(Clock);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('accountDialog');
 
   protected readonly types = Object.entries(ACCOUNT_TYPE_LABELS) as [AccountType, string][];
@@ -29,6 +37,7 @@ export class Accounts {
       account,
       cash: isCash(account),
       balance: accountBalance(data, account),
+      inflow: monthlyInflow(data, account.id, this.clock.month()),
       fromHoldings: account.type === 'depot' && holdingsValue(data, account.id) !== undefined,
       lastValuation:
         [...account.valuations].sort((a, b) => a.date.localeCompare(b.date)).at(-1)?.date ?? '',

@@ -1,6 +1,14 @@
-import { Account, CASH_ACCOUNT_TYPES, FinanceData, IsoDate, Month, RecurringItem } from './models';
+import {
+  Account,
+  CASH_ACCOUNT_TYPES,
+  FinanceData,
+  IsoDate,
+  Month,
+  RecurringItem,
+  WealthOptions,
+} from './models';
 import { lastDayOf } from './months';
-import { amountInMonth, plannedTotal } from './recurring';
+import { amountInMonth, isActiveIn, isSaving, monthlyEquivalent, plannedTotal } from './recurring';
 
 export const isCash = (account: Account) => CASH_ACCOUNT_TYPES.includes(account.type);
 
@@ -49,28 +57,56 @@ export function wealthBreakdown(data: FinanceData, until?: IsoDate): WealthBreak
   return result;
 }
 
+/** Net worth with assets and debts left out when the options say so. */
+export function wealthTotal(wealth: WealthBreakdown, options: WealthOptions): number {
+  return (
+    wealth.cash +
+    wealth.investments +
+    (options.includeAssets ? wealth.other : 0) -
+    (options.includeDebts ? wealth.debts : 0)
+  );
+}
+
 /** Net worth at the end of each month; the current month uses today's values. */
 export function wealthHistory(
   data: FinanceData,
   months: readonly Month[],
   currentMonth: Month,
+  options: WealthOptions = data.wealthOptions,
 ): number[] {
-  return months.map(
-    (month) => wealthBreakdown(data, month === currentMonth ? undefined : lastDayOf(month)).total,
+  return months.map((month) =>
+    wealthTotal(
+      wealthBreakdown(data, month === currentMonth ? undefined : lastDayOf(month)),
+      options,
+    ),
   );
 }
 
 export interface MonthTotals {
   income: number;
+  /** Spending, without savings to own accounts. */
   expenses: number;
+  /** Expenses that go to an own account or depot. */
+  savings: number;
 }
 
-/** Income and expenses of a month from the defined income sources and fixed expenses. */
+/** Income, spending and savings of a month from the defined income and expenses. */
 export function monthTotals(data: FinanceData, month: Month): MonthTotals {
+  const savings = plannedTotal(data.recurring.filter(isSaving), 'expense', month);
   return {
     income: plannedTotal(data.recurring, 'income', month),
-    expenses: plannedTotal(data.recurring, 'expense', month),
+    expenses: plannedTotal(data.recurring, 'expense', month) - savings,
+    savings,
   };
+}
+
+/** Monthly amount flowing into an account from savings expenses (monthly average). */
+export function monthlyInflow(data: FinanceData, accountId: string, month: Month): number {
+  return data.recurring
+    .filter(
+      (item) => item.targetAccountId === accountId && isSaving(item) && isActiveIn(item, month),
+    )
+    .reduce((sum, item) => sum + monthlyEquivalent(item), 0);
 }
 
 export interface CategoryAmount {
@@ -81,7 +117,7 @@ export interface CategoryAmount {
 export function spendingByCategory(data: FinanceData, month: Month): CategoryAmount[] {
   const totals = new Map<string, number>();
   for (const item of data.recurring) {
-    if (item.kind !== 'expense') continue;
+    if (item.kind !== 'expense' || isSaving(item)) continue;
     const amount = amountInMonth(item, month);
     if (amount) totals.set(item.categoryId, (totals.get(item.categoryId) ?? 0) + amount);
   }

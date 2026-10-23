@@ -15,6 +15,7 @@ import {
   RecurringItem,
   Transaction,
   Valuation,
+  WealthOptions,
 } from './models';
 import { addMonths, monthOf } from './months';
 
@@ -65,6 +66,11 @@ export function normalizeData(raw: unknown): FinanceData {
     ...data,
     version: 1,
     profile: { ...base.profile, ...data.profile },
+    wealthOptions: { ...base.wealthOptions, ...data.wealthOptions },
+    recurring: (data.recurring ?? []).map((item) => ({
+      ...item,
+      targetAccountId: item.targetAccountId ?? '',
+    })),
     accounts: (data.accounts ?? []).map((account) => {
       const valuations = account.valuations ?? [];
       return {
@@ -198,6 +204,9 @@ export class FinanceStore {
       return {
         ...data,
         accounts: data.accounts.filter((account) => account.id !== id),
+        recurring: data.recurring.map((item) =>
+          item.targetAccountId === id ? { ...item, targetAccountId: '' } : item,
+        ),
         transactions: data.transactions.filter((tx) => tx.accountId !== id),
         holdings: data.holdings.filter((h) => h.accountId !== id),
         dividends: data.dividends.filter((d) => !holdingIds.has(d.holdingId)),
@@ -355,6 +364,7 @@ export class FinanceStore {
       from: suggestion.firstMonth,
       to: '',
       categoryId: suggestion.categoryId,
+      targetAccountId: '',
       provider: suggestion.kind === 'expense' ? suggestion.name : '',
       customerNumber: '',
       cancelBy: '',
@@ -365,6 +375,12 @@ export class FinanceStore {
 
   dismissSuggestion(key: string): void {
     this.change((data) => ({ ...data, dismissedSuggestions: [...data.dismissedSuggestions, key] }));
+  }
+
+  // Overview
+
+  setWealthOptions(wealthOptions: WealthOptions): void {
+    this.change((data) => ({ ...data, wealthOptions }));
   }
 
   // Budgets

@@ -14,7 +14,7 @@ import { FinanceStore } from '../data/finance-store';
 import { duplicateSubscriptions, savingsPotentialPerMonth } from '../data/insights';
 import { RecurringItem, RHYTHM_LABELS } from '../data/models';
 import { addDays, daysBetween } from '../data/months';
-import { fixedCostsPerMonth, isActiveIn, isCurrentOrFuture } from '../data/recurring';
+import { fixedCostsPerMonth, isActiveIn, isCurrentOrFuture, isSaving } from '../data/recurring';
 import { RecurringForm } from '../income/recurring-form';
 import { downloadText, slug } from '../shared/download';
 import { RecurringSuggestions } from '../shared/recurring-suggestions';
@@ -62,6 +62,7 @@ export class Contracts {
       .recurring.filter(
         (item) =>
           item.kind === 'expense' &&
+          !isSaving(item) &&
           isCurrentOrFuture(item, this.clock.month()) &&
           item.rhythm !== 'once',
       ),

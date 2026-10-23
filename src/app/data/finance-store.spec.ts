@@ -21,6 +21,7 @@ const salary: RecurringItem = {
   from: '2026-01',
   to: '',
   categoryId: 'einkommen',
+  targetAccountId: '',
   provider: '',
   customerNumber: '',
   cancelBy: '',
@@ -108,6 +109,20 @@ describe('FinanceStore', () => {
       { date: '2026-09-20', value: 130 },
       { date: '2026-10-01', value: 140 },
     ]);
+  });
+
+  it('clears savings targets when their account is removed', () => {
+    store.save('recurring', { ...salary, kind: 'expense', targetAccountId: 'giro' });
+    store.removeAccount('giro');
+    expect(store.data().recurring[0].targetAccountId).toBe('');
+  });
+
+  it('fills in defaults for older data', () => {
+    const { targetAccountId, ...old } = salary;
+    const data = normalizeData({ recurring: [old] });
+    expect(targetAccountId).toBe('');
+    expect(data.recurring[0].targetAccountId).toBe('');
+    expect(data.wealthOptions).toEqual({ includeAssets: true, includeDebts: true });
   });
 
   it('marks a goal as reached once the target is saved', () => {

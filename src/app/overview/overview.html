@@ -36,7 +36,7 @@
     <section class="card card-dark hero" aria-labelledby="wealth-heading">
       <h2 id="wealth-heading" class="label">Gesamtvermögen</h2>
       <div class="row">
-        <span class="big-number">{{ eur(wealth().total) }}</span>
+        <span class="big-number">{{ eur(total()) }}</span>
         @if (change()) {
           <span class="positive"
             >{{ signedPct(change()) }} <span class="visually-hidden">gegenüber Vormonat</span></span
@@ -47,11 +47,32 @@
       <p class="split meta">
         <span>Konten {{ eur(wealth().cash) }}</span>
         <span>Depots {{ eur(wealth().investments) }}</span>
-        <span>Sachwerte {{ eur(wealth().other) }}</span>
-        @if (wealth().debts) {
+        @if (options().includeAssets) {
+          <span>Sachwerte {{ eur(wealth().other) }}</span>
+        }
+        @if (options().includeDebts && wealth().debts) {
           <span>Schulden −{{ eur(wealth().debts) }}</span>
         }
       </p>
+      <fieldset class="options">
+        <legend class="visually-hidden">Im Gesamtvermögen berücksichtigen</legend>
+        <label class="field-check">
+          <input
+            type="checkbox"
+            [checked]="options().includeAssets"
+            (change)="toggle('includeAssets', $event)"
+          />
+          Sachwerte einrechnen
+        </label>
+        <label class="field-check">
+          <input
+            type="checkbox"
+            [checked]="options().includeDebts"
+            (change)="toggle('includeDebts', $event)"
+          />
+          Schulden einrechnen
+        </label>
+      </fieldset>
     </section>
 
     <section class="card" aria-labelledby="month-heading">
@@ -81,9 +102,15 @@
       </div>
       <div class="bar" aria-hidden="true">
         <span class="bar-dark" [style.width.%]="expenseShare()"></span>
+        @if (totals().savings) {
+          <span [style.width.%]="savingsShare()"></span>
+        }
       </div>
       <p class="legend meta">
-        <span><i class="sw-expenses"></i>Ausgaben im Verhältnis zu den Einnahmen</span>
+        <span><i class="sw-expenses"></i>Ausgaben</span>
+        @if (totals().savings) {
+          <span><i class="sw-savings"></i>aufs Konto/Depot {{ eur(totals().savings) }}</span>
+        }
         <span>Sparquote {{ pct(savingsRate()) }}</span>
       </p>
     </section>
@@ -100,7 +127,11 @@
               <span class="list-main">
                 <span class="list-title">{{ entry.item.name }}</span>
                 <span class="meta">{{
-                  entry.item.kind === 'income' ? 'Einnahme' : 'Ausgabe'
+                  entry.item.kind === 'income'
+                    ? 'Einnahme'
+                    : entry.item.targetAccountId
+                      ? 'Sparen'
+                      : 'Ausgabe'
                 }}</span>
               </span>
               <span class="amount" [class.positive]="entry.item.kind === 'income'">
@@ -158,7 +189,7 @@
     <section class="card wide" aria-labelledby="history-heading">
       <div class="spread">
         <h2 id="history-heading">Vermögensentwicklung</h2>
-        <span class="meta">letzte 12 Monate</span>
+        <span class="meta">letzte 12 Monate{{ historyNote() }}</span>
       </div>
       <app-line-chart [points]="historyPoints()" caption="Gesamtvermögen am Monatsende" />
     </section>

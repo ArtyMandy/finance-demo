@@ -45,6 +45,7 @@ export function createDemoData(today: IsoDate): FinanceData {
       purpose: item.name,
       amount: item.kind === 'income' ? 1 : -1,
     }),
+    targetAccountId: '',
     provider: '',
     customerNumber: '',
     cancelBy: '',
@@ -176,6 +177,26 @@ export function createDemoData(today: IsoDate): FinanceData {
         from: addMonths(month, -11),
       },
       'car-insurance',
+    ),
+    recurring(
+      {
+        kind: 'expense',
+        name: 'Sparrate Tagesgeld',
+        amount: 300,
+        categoryId: 'sparen',
+        targetAccountId: 'tagesgeld',
+      },
+      'savings-tagesgeld',
+    ),
+    recurring(
+      {
+        kind: 'expense',
+        name: 'ETF-Sparplan',
+        amount: 250,
+        categoryId: 'sparen',
+        targetAccountId: 'depot',
+      },
+      'savings-etf',
     ),
     recurring(
       { kind: 'expense', name: 'Lebensmittel & Drogerie', amount: 380, categoryId: 'lebensmittel' },

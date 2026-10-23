@@ -74,6 +74,11 @@ export interface RecurringItem {
   /** Empty = open-ended. */
   to: Month;
   categoryId: string;
+  /**
+   * Own account or depot the money goes to (expenses only, e.g. a savings plan); empty = none.
+   * Such expenses count as savings, not as spending.
+   */
+  targetAccountId: string;
   /** Contract details (expenses only). */
   provider: string;
   customerNumber: string;
@@ -168,6 +173,12 @@ export interface Profile {
   children: number;
 }
 
+/** What the net worth on the overview includes besides accounts and depots. */
+export interface WealthOptions {
+  includeAssets: boolean;
+  includeDebts: boolean;
+}
+
 /** A learned rule: bookings from this counterparty go to this category. */
 export interface CategoryRule {
   pattern: string;
@@ -191,6 +202,7 @@ export interface FinanceData {
   categoryRules: CategoryRule[];
   /** Keys of contract suggestions the user dismissed. */
   dismissedSuggestions: string[];
+  wealthOptions: WealthOptions;
 }
 
 export function emptyFinanceData(): FinanceData {
@@ -209,5 +221,6 @@ export function emptyFinanceData(): FinanceData {
     pension: [],
     categoryRules: [],
     dismissedSuggestions: [],
+    wealthOptions: { includeAssets: true, includeDebts: true },
   };
 }

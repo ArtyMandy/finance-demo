@@ -1,9 +1,12 @@
 import {
   accountBalance,
   dueItems,
+  monthlyInflow,
   monthTotals,
   spendingByCategory,
   wealthBreakdown,
+  wealthHistory,
+  wealthTotal,
 } from './analytics';
 import { categorize } from './categories';
 import { detectContracts, duplicateSubscriptions, upcomingDeadlines } from './insights';
@@ -22,6 +25,7 @@ function item(partial: Partial<RecurringItem>): RecurringItem {
     from: '2026-01',
     to: '',
     categoryId: 'sonstiges',
+    targetAccountId: '',
     provider: '',
     customerNumber: '',
     cancelBy: '',
@@ -165,12 +169,39 @@ describe('analytics', () => {
   });
 
   it('computes income and expenses from the defined items, ignoring bookings', () => {
-    expect(monthTotals(finance, '2026-10')).toEqual({ income: 3000, expenses: 1030 });
-    expect(monthTotals(finance, '2025-12')).toEqual({ income: 0, expenses: 0 });
+    expect(monthTotals(finance, '2026-10')).toEqual({ income: 3000, expenses: 1030, savings: 0 });
+    expect(monthTotals(finance, '2025-12')).toEqual({ income: 0, expenses: 0, savings: 0 });
     expect(spendingByCategory(finance, '2026-10')).toEqual([
       { categoryId: 'wohnen', amount: 1000 },
       { categoryId: 'sonstiges', amount: 30 },
     ]);
+  });
+
+  it('counts expenses to an own account or depot as savings, not spending', () => {
+    const withSavings = {
+      ...finance,
+      recurring: [
+        ...finance.recurring,
+        item({ name: 'ETF', amount: 600, rhythm: 'quarterly', targetAccountId: 'depot' }),
+      ],
+    };
+    expect(monthTotals(withSavings, '2026-10')).toEqual({
+      income: 3000,
+      expenses: 1030,
+      savings: 600,
+    });
+    expect(spendingByCategory(withSavings, '2026-10').map((e) => e.amount)).toEqual([1000, 30]);
+    expect(fixedCostsPerMonth(withSavings.recurring, '2026-10')).toBe(1030);
+    expect(monthlyInflow(withSavings, 'depot', '2026-10')).toBe(200);
+  });
+
+  it('leaves assets or debts out of the net worth on request', () => {
+    const wealth = { cash: 1000, investments: 500, other: 300, debts: 200, total: 1600 };
+    expect(wealthTotal(wealth, { includeAssets: true, includeDebts: true })).toBe(1600);
+    expect(wealthTotal(wealth, { includeAssets: false, includeDebts: true })).toBe(1300);
+    expect(wealthTotal(wealth, { includeAssets: true, includeDebts: false })).toBe(1800);
+    const options = { includeAssets: true, includeDebts: false };
+    expect(wealthHistory(finance, ['2026-10'], '2026-10', options)).toEqual([7500]);
   });
 
   it('lists the items due in a month, income first', () => {
