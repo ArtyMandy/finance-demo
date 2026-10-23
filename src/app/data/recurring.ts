@@ -30,6 +30,9 @@ export function isCurrentOrFuture(item: RecurringItem, month: Month): boolean {
   return !item.to || item.to >= month;
 }
 
+/** Expense that moves money to an own account or depot (savings), not spending. */
+export const isSaving = (item: RecurringItem) => item.kind === 'expense' && !!item.targetAccountId;
+
 /** Sum of a kind (income or expense) booked in a month. */
 export function plannedTotal(
   items: readonly RecurringItem[],
@@ -41,9 +44,9 @@ export function plannedTotal(
     .reduce((sum, item) => sum + amountInMonth(item, month), 0);
 }
 
-/** Monthly fixed costs: all current recurring expenses as a monthly average. */
+/** Monthly fixed costs: all current recurring expenses except savings as a monthly average. */
 export function fixedCostsPerMonth(items: readonly RecurringItem[], month: Month): number {
   return items
-    .filter((item) => item.kind === 'expense' && isActiveIn(item, month))
+    .filter((item) => item.kind === 'expense' && !isSaving(item) && isActiveIn(item, month))
     .reduce((sum, item) => sum + monthlyEquivalent(item), 0);
 }

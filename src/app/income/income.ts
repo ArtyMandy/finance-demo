@@ -5,7 +5,7 @@ import { categoryName } from '../data/categories';
 import { FinanceStore } from '../data/finance-store';
 import { RecurringItem, RHYTHM_LABELS } from '../data/models';
 import { MONTH_PATTERN } from '../data/months';
-import { isActiveIn, monthlyEquivalent } from '../data/recurring';
+import { isActiveIn, isSaving, monthlyEquivalent } from '../data/recurring';
 import { formatEuro, formatMonth } from '../shared/format';
 import { RecurringSuggestions } from '../shared/recurring-suggestions';
 import { RecurringForm } from './recurring-form';
@@ -75,8 +75,16 @@ export class Income {
     },
   ]);
 
-  protected readonly incomePerMonth = computed(() => this.sumMonthly('income'));
-  protected readonly expensesPerMonth = computed(() => this.sumMonthly('expense'));
+  protected readonly incomePerMonth = computed(() => this.sumMonthly((i) => i.kind === 'income'));
+  protected readonly expensesPerMonth = computed(() =>
+    this.sumMonthly((i) => i.kind === 'expense' && !isSaving(i)),
+  );
+  protected readonly savingsPerMonth = computed(() => this.sumMonthly(isSaving));
+
+  private readonly accountNames = computed(
+    () => new Map(this.store.data().accounts.map((a) => [a.id, a.name])),
+  );
+  protected readonly accountName = (id: string) => this.accountNames().get(id) ?? '';
 
   protected readonly eur = formatEuro;
   protected readonly month = formatMonth;
@@ -92,9 +100,9 @@ export class Income {
     min(s.amount, 0.01, { message: 'Der Betrag muss größer als 0 sein.' });
   });
 
-  private sumMonthly(kind: RecurringItem['kind']): number {
+  private sumMonthly(include: (item: RecurringItem) => boolean): number {
     return this.items()
-      .filter((item) => item.kind === kind && isActiveIn(item, this.clock.month()))
+      .filter((item) => include(item) && isActiveIn(item, this.clock.month()))
       .reduce((sum, item) => sum + monthlyEquivalent(item), 0);
   }
 

@@ -7,6 +7,7 @@ import {
   spendingByCategory,
   wealthBreakdown,
   wealthHistory,
+  wealthTotal,
 } from '../data/analytics';
 import { createDemoData } from '../data/demo-data';
 import { FinanceStore } from '../data/finance-store';
@@ -54,6 +55,25 @@ const DUE_LIMIT = 6;
     .sw-expenses {
       background: var(--color-text);
     }
+    .sw-savings {
+      background: var(--color-primary);
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 1rem;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    .options .field-check {
+      min-height: 2rem;
+      color: #f8fafc;
+      font-size: 0.8125rem;
+    }
+    .options .field-check input {
+      accent-color: var(--color-accent-dark);
+    }
     .onboarding ol {
       display: flex;
       flex-direction: column;
@@ -87,6 +107,14 @@ export class Overview {
   );
 
   protected readonly wealth = computed(() => wealthBreakdown(this.store.data()));
+  protected readonly options = computed(() => this.store.data().wealthOptions);
+  protected readonly historyNote = computed(() => {
+    const { includeAssets, includeDebts } = this.options();
+    if (includeAssets && includeDebts) return '';
+    if (!includeAssets && !includeDebts) return ' · ohne Sachwerte und Schulden';
+    return includeAssets ? ' · ohne Schulden' : ' · ohne Sachwerte';
+  });
+  protected readonly total = computed(() => wealthTotal(this.wealth(), this.options()));
   protected readonly sparkline = computed(() => this.history());
   protected readonly historyPoints = computed(() =>
     this.months().map((month, index) => ({
@@ -101,17 +129,26 @@ export class Overview {
   });
 
   protected readonly totals = computed(() => monthTotals(this.store.data(), this.clock.month()));
-  protected readonly leftover = computed(() => this.totals().income - this.totals().expenses);
+  protected readonly leftover = computed(
+    () => this.totals().income - this.totals().expenses - this.totals().savings,
+  );
   private readonly allDue = computed(() => dueItems(this.store.data(), this.clock.month()));
   protected readonly due = computed(() => this.allDue().slice(0, DUE_LIMIT));
   protected readonly moreDue = computed(() => this.allDue().length - this.due().length);
-  protected readonly expenseShare = computed(() => {
-    const { income, expenses } = this.totals();
-    return Math.min(100, (expenses / Math.max(income, expenses, 1)) * 100);
+  private readonly barBase = computed(() => {
+    const { income, expenses, savings } = this.totals();
+    return Math.max(income, expenses + savings, 1);
   });
+  protected readonly expenseShare = computed(() =>
+    Math.min(100, (this.totals().expenses / this.barBase()) * 100),
+  );
+  protected readonly savingsShare = computed(() =>
+    Math.min(100 - this.expenseShare(), (this.totals().savings / this.barBase()) * 100),
+  );
+  /** Share of income that is saved: savings to own accounts plus what is left over. */
   protected readonly savingsRate = computed(() => {
     const income = this.totals().income;
-    return income > 0 ? Math.max(0, this.leftover()) / income : 0;
+    return income > 0 ? (this.totals().savings + Math.max(0, this.leftover())) / income : 0;
   });
 
   protected readonly categories = computed(() =>
@@ -124,6 +161,11 @@ export class Overview {
   protected readonly eur = formatEuroRounded;
   protected readonly pct = formatPercent;
   protected readonly signedPct = formatSignedPercent;
+
+  protected toggle(option: 'includeAssets' | 'includeDebts', event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.store.setWealthOptions({ ...this.options(), [option]: checked });
+  }
 
   protected loadDemo(): void {
     this.store.replace(createDemoData(this.clock.today()));

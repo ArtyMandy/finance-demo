@@ -15,9 +15,17 @@
       <span class="label">Fixkosten / Monat</span>
       <span class="stat-value">{{ eur(expensesPerMonth()) }}</span>
     </div>
+    @if (savingsPerMonth()) {
+      <div class="card stat">
+        <span class="label">Sparen aufs Konto/Depot / Monat</span>
+        <span class="stat-value">{{ eur(savingsPerMonth()) }}</span>
+      </div>
+    }
     <div class="card stat">
       <span class="label">Frei verfügbar / Monat</span>
-      <span class="stat-value">{{ eur(incomePerMonth() - expensesPerMonth()) }}</span>
+      <span class="stat-value">{{
+        eur(incomePerMonth() - expensesPerMonth() - savingsPerMonth())
+      }}</span>
     </div>
   </div>
   <p class="meta">
@@ -53,6 +61,9 @@
                   {{ rhythm(series.current) }} · {{ category(series.current.categoryId) }} · ab
                   {{ month(series.current.from)
                   }}{{ series.current.to ? ' bis ' + month(series.current.to) : ', unbefristet' }}
+                  @if (accountName(series.current.targetAccountId)) {
+                    · landet auf {{ accountName(series.current.targetAccountId) }}
+                  }
                 </span>
                 @if (series.history.length) {
                   <details>

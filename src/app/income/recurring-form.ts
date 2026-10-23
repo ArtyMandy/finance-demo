@@ -26,6 +26,7 @@ function emptyModel(kind: Kind, month: string) {
     from: month,
     to: '',
     categoryId: kind === 'income' ? 'einkommen' : 'wohnen',
+    targetAccountId: '',
     provider: '',
     customerNumber: '',
     cancelBy: '',
@@ -101,6 +102,21 @@ function emptyModel(kind: Kind, month: string) {
               }
             </select>
           </label>
+          @if (!recurringForm.targetAccountId().hidden()) {
+            <label class="field">
+              Landet auf Konto / Depot (optional)
+              <select [formField]="recurringForm.targetAccountId">
+                <option value="">Keins – echte Ausgabe</option>
+                @for (account of accounts(); track account.id) {
+                  <option [value]="account.id">{{ account.name }}</option>
+                }
+              </select>
+              <span class="field-hint"
+                >Z. B. Sparrate aufs Tagesgeld oder ETF-Sparplan aufs Depot. Zählt dann als Sparen,
+                nicht als Ausgabe.</span
+              >
+            </label>
+          }
         </div>
         @if (!recurringForm.provider().hidden()) {
           <fieldset class="stack">
@@ -151,6 +167,10 @@ export class RecurringForm {
   private readonly kind = signal<Kind>('income');
 
   protected readonly categories = CATEGORIES;
+  /** Own accounts and depots money can go to; assets and loans are left out. */
+  protected readonly accounts = computed(() =>
+    this.store.data().accounts.filter((a) => a.type !== 'sachwert' && a.type !== 'kredit'),
+  );
   protected readonly rhythms = Object.entries(RHYTHM_LABELS) as [Rhythm, string][];
 
   protected readonly model = signal(emptyModel('income', ''));
@@ -168,6 +188,9 @@ export class RecurringForm {
         : undefined,
     );
     hidden(s.provider, { when: ({ valueOf }) => valueOf(s.kind) !== 'expense' });
+    hidden(s.targetAccountId, {
+      when: ({ valueOf }) => valueOf(s.kind) !== 'expense' || !this.accounts().length,
+    });
     pattern(s.cancelBy, DATE_PATTERN, { message: 'Bitte ein gültiges Datum eingeben.' });
   });
 
@@ -194,6 +217,7 @@ export class RecurringForm {
             from: item.from,
             to: item.to,
             categoryId: item.categoryId,
+            targetAccountId: item.targetAccountId,
             provider: item.provider,
             customerNumber: item.customerNumber,
             cancelBy: item.cancelBy,
@@ -220,6 +244,7 @@ export class RecurringForm {
         from: value.from,
         to: value.rhythm === 'once' ? value.from : value.to,
         categoryId: value.categoryId,
+        targetAccountId: kind === 'expense' ? value.targetAccountId : '',
         provider: kind === 'expense' ? value.provider.trim() : '',
         customerNumber: kind === 'expense' ? value.customerNumber.trim() : '',
         cancelBy: kind === 'expense' ? value.cancelBy : '',
