@@ -70,8 +70,8 @@
           <tbody>
             @for (tx of visible(); track tx.id) {
               <tr>
-                <td>{{ date(tx.date) }}</td>
-                <td>
+                <td class="date">{{ date(tx.date) }}</td>
+                <td class="who-cell">
                   <span class="who">{{ tx.counterparty || '—' }}</span
                   ><br />
                   <span class="meta"
@@ -79,7 +79,7 @@
                     }}{{ accountName(tx.accountId) ? ' · ' + accountName(tx.accountId) : '' }}</span
                   >
                 </td>
-                <td>
+                <td class="category">
                   <select
                     [attr.aria-label]="
                       'Kategorie für ' + (tx.counterparty || 'Buchung') + ' am ' + date(tx.date)
@@ -94,7 +94,7 @@
                   </select>
                 </td>
                 <td class="amount" [class.positive]="tx.amount > 0">{{ eur(tx.amount) }}</td>
-                <td>
+                <td class="actions">
                   <button type="button" class="btn btn-ghost btn-small" (click)="remove(tx.id)">
                     Löschen<span class="visually-hidden"
                       >: {{ tx.counterparty }} am {{ date(tx.date) }}</span

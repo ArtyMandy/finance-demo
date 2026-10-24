@@ -653,8 +653,12 @@ legend {
 
 /* Tables */
 
+/* Wide tables scroll inside their box. Containment keeps their width from stretching the
+   layout viewport on mobile, which would widen the whole page and the fixed tab bar. */
 .table-wrap {
+  max-width: 100%;
   overflow-x: auto;
+  contain: layout inline-size;
 }
 
 table {
