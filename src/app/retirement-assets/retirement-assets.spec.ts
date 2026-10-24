@@ -106,7 +106,8 @@ describe('Vorsorgevermögen', () => {
       expect(text(projection)).toContain('noch 0 Jahre');
       expect(text(projection)).toContain('−659 €');
       expect(text(projection)).toContain('9.341 €');
-      expect(projection.querySelectorAll('tbody tr')).toHaveLength(4);
+      const scenarios = projection.querySelector('[aria-labelledby="scenarios-heading"]')!;
+      expect(scenarios.querySelectorAll('tbody tr')).toHaveLength(4);
     });
 
     it('saves changed assumptions and restores the defaults', async () => {
