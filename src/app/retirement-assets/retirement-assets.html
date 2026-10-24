@@ -64,23 +64,7 @@
     }
   </section>
 
-  <section class="card card-tint" aria-labelledby="horizon-heading">
-    <h2 id="horizon-heading">Bis zum Rentenbeginn</h2>
-    @if (yearsLeft() !== undefined) {
-      <p>
-        Mit {{ profile().retirementAge }} Jahren in Rente: noch
-        <strong>{{ yearsLeft() }} {{ yearsLeft() === 1 ? 'Jahr' : 'Jahre' }}</strong>
-        (Jahrgang {{ profile().birthYear }}).
-      </p>
-    } @else {
-      <p>
-        Trage im <a routerLink="/profil">Profil</a> dein Geburtsjahr ein, damit die Laufzeit bis
-        zum Rentenbeginn berechnet werden kann.
-      </p>
-    }
-    <p class="meta">
-      Die Hochrechnung mit Rendite-Szenarien und Kapitalertragsteuer folgt. Alle Werte sind
-      Rechenbeispiele, keine Prognose und keine Anlageberatung.
-    </p>
-  </section>
+  @if (status().positions.length) {
+    <app-retirement-projection [positions]="status().positions" />
+  }
 </main>

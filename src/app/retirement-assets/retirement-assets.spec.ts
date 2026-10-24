@@ -6,6 +6,7 @@ import { Accounts } from '../accounts/accounts';
 import { Clock } from '../core/clock';
 import { FinanceStore } from '../data/finance-store';
 import { Account } from '../data/models';
+import { RULES } from '../rules/rules';
 
 function account(partial: Partial<Account> & Pick<Account, 'id' | 'type'>): Account {
   return {
@@ -37,7 +38,7 @@ describe('Vorsorgevermögen', () => {
     const page = harness.routeNativeElement!;
     expect(text(page.querySelector('h1'))).toContain('Vorsorgevermögen');
     expect(text(page)).toContain('Noch keine Konten zugeordnet');
-    expect(text(page)).toContain('Geburtsjahr');
+    expect(page.querySelector('app-retirement-projection')).toBeNull();
   });
 
   it('shows the marked accounts with the property net of its loan', async () => {
@@ -66,6 +67,66 @@ describe('Vorsorgevermögen', () => {
     expect(items).toEqual(['Depot', 'Wohnung']);
     expect(text(page.querySelector('.card-dark'))).toContain('80.000');
     expect(text(page)).toContain('noch 31 Jahre');
+  });
+
+  describe('Hochrechnung', () => {
+    const depot = account({
+      id: 'Depot',
+      type: 'depot',
+      retirement: true,
+      valuations: [{ date: '2026-01-01', value: 10000 }],
+    });
+
+    it('asks for the birth year first', async () => {
+      store.save('accounts', depot);
+      const harness = await RouterTestingHarness.create('/vorsorgevermoegen');
+      const projection = harness.routeNativeElement!.querySelector('app-retirement-projection');
+      expect(text(projection)).toContain('Geburtsjahr');
+      expect(projection?.querySelector('table')).toBeNull();
+    });
+
+    it('shows the value before and after tax and the return scenarios', async () => {
+      store.save('accounts', depot);
+      store.save('holdings', {
+        id: 'etf',
+        accountId: 'Depot',
+        name: 'MSCI World',
+        isin: '',
+        assetType: 'etf',
+        quantity: 100,
+        buyPrice: 50,
+        currentPrice: 100,
+        savingsPlan: 0,
+      });
+      store.updateProfile({ ...store.data().profile, birthYear: 1959 });
+      const harness = await RouterTestingHarness.create('/vorsorgevermoegen');
+      const projection = harness.routeNativeElement!.querySelector('app-retirement-projection')!;
+
+      // Retires this year: gain 5,000 € × 70 % − 1,000 € allowance, taxed at 26.375 %.
+      expect(text(projection)).toContain('noch 0 Jahre');
+      expect(text(projection)).toContain('−659 €');
+      expect(text(projection)).toContain('9.341 €');
+      const scenarios = projection.querySelector('[aria-labelledby="scenarios-heading"]')!;
+      expect(scenarios.querySelectorAll('tbody tr')).toHaveLength(4);
+    });
+
+    it('saves changed assumptions and restores the defaults', async () => {
+      store.save('accounts', depot);
+      store.updateProfile({ ...store.data().profile, birthYear: 1990 });
+      const harness = await RouterTestingHarness.create('/vorsorgevermoegen');
+      const projection = harness.routeNativeElement!.querySelector('app-retirement-projection')!;
+      const input = projection.querySelector('form input') as HTMLInputElement;
+
+      input.value = '7';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await harness.fixture.whenStable();
+      expect(store.data().retirementAssumptions.depotReturn).toBeCloseTo(0.07);
+
+      (projection.querySelector('form button') as HTMLButtonElement).click();
+      await harness.fixture.whenStable();
+      expect(store.data().retirementAssumptions).toEqual(RULES.vorsorge.defaultAssumptions);
+      expect(input.value).toBe('5');
+    });
   });
 });
 
