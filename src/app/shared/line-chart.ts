@@ -49,7 +49,7 @@ export interface LinePoint {
             </caption>
             <thead>
               <tr>
-                <th scope="col">Monat</th>
+                <th scope="col">{{ labelHeading() }}</th>
                 <th scope="col" class="amount">Wert</th>
               </tr>
             </thead>
@@ -137,6 +137,8 @@ export interface LinePoint {
 export class LineChart {
   readonly points = input.required<readonly LinePoint[]>();
   readonly caption = input('Verlauf');
+  /** Column heading of the labels in the table view. */
+  readonly labelHeading = input('Monat');
 
   protected readonly active = signal(-1);
 

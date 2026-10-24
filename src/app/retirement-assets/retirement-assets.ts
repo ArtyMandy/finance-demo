@@ -3,8 +3,9 @@ import { RouterLink } from '@angular/router';
 import { Clock } from '../core/clock';
 import { FinanceStore } from '../data/finance-store';
 import { ACCOUNT_TYPE_LABELS } from '../data/models';
-import { RetirementKind, retirementStatus, yearsUntilRetirement } from '../data/retirement';
+import { RetirementKind, retirementStatus } from '../data/retirement';
 import { formatEuro, formatEuroRounded } from '../shared/format';
+import { RetirementProjection } from './retirement-projection';
 
 const KIND_LABELS: Record<RetirementKind, string> = {
   depot: 'Depots',
@@ -14,7 +15,7 @@ const KIND_LABELS: Record<RetirementKind, string> = {
 
 /** Vorsorgevermögen: capital set aside for retirement, separate from the expected pensions. */
 @Component({
-  imports: [RouterLink],
+  imports: [RetirementProjection, RouterLink],
   selector: 'app-retirement-assets',
   templateUrl: './retirement-assets.html',
 })
@@ -35,10 +36,6 @@ export class RetirementAssets {
       label: KIND_LABELS[kind],
       value: this.status().byKind[kind],
     })),
-  );
-  protected readonly profile = computed(() => this.store.data().profile);
-  protected readonly yearsLeft = computed(() =>
-    yearsUntilRetirement(this.profile(), Number(this.clock.today().slice(0, 4))),
   );
   protected readonly loanName = (id: string) =>
     this.store.data().accounts.find((account) => account.id === id)?.name ?? '';

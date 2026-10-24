@@ -1,0 +1,173 @@
+@if (years() === undefined) {
+  <section class="card card-tint" aria-labelledby="projection-heading">
+    <h2 id="projection-heading">Hochrechnung bis zum Rentenbeginn</h2>
+    <p>
+      Trage im <a routerLink="/profil">Profil</a> dein Geburtsjahr ein, damit die Laufzeit bis zum
+      Rentenbeginn berechnet werden kann.
+    </p>
+  </section>
+} @else {
+  <section class="card card-dark stack" aria-labelledby="projection-heading">
+    <h2 id="projection-heading">Hochrechnung bis zum Rentenbeginn {{ retirementYear() }}</h2>
+    <p class="meta">
+      Mit {{ profile().retirementAge }} Jahren in Rente: noch {{ years() }}
+      {{ years() === 1 ? 'Jahr' : 'Jahre' }}, Depot-Rendite {{ pct(depotReturn()) }} p. a.
+    </p>
+    <dl class="grid-stats" aria-live="polite">
+      <div class="stat">
+        <dt class="label">Wert vor Steuern</dt>
+        <dd class="stat-value">{{ eur(projection().gross) }}</dd>
+      </div>
+      <div class="stat">
+        <dt class="label">Geschätzte Kapitalertragsteuer</dt>
+        <dd class="stat-value">−{{ eur(projection().tax.tax) }}</dd>
+      </div>
+      <div class="stat">
+        <dt class="label">Wert nach Steuern</dt>
+        <dd class="big-number positive">{{ eur(projection().net) }}</dd>
+      </div>
+      <div class="stat">
+        <dt class="label">In heutiger Kaufkraft</dt>
+        <dd class="stat-value">{{ eur(projection().realNet) }}</dd>
+      </div>
+      <div class="stat">
+        <dt class="label">Davon eingezahlt bis dahin</dt>
+        <dd class="stat-value">{{ eur(projection().paidIn) }}</dd>
+      </div>
+    </dl>
+    @if (hasDepot()) {
+      <details>
+        <summary>So ist die Steuer gerechnet</summary>
+        <dl class="breakdown">
+          <dt>Gewinn der Depots</dt>
+          <dd>{{ eur(projection().tax.gain) }}</dd>
+          <dt>Steuerpflichtig nach Teilfreistellung</dt>
+          <dd>{{ eur(projection().tax.taxableGain) }}</dd>
+          <dt>Sparerpauschbetrag</dt>
+          <dd>−{{ eur(projection().tax.exemptionUsed) }}</dd>
+          <dt>Bemessungsgrundlage</dt>
+          <dd>{{ eur(projection().tax.taxBase) }}</dd>
+          <dt>Steuersatz inkl. Soli{{ profile().churchTax ? ' und Kirchensteuer' : '' }}</dt>
+          <dd>{{ pctPrecise(projection().tax.rate) }}</dd>
+          <dt class="sum">Kapitalertragsteuer</dt>
+          <dd class="sum">{{ eur(projection().tax.tax) }}</dd>
+        </dl>
+      </details>
+    }
+  </section>
+
+  <section class="card" aria-labelledby="chart-heading">
+    <div class="row">
+      <h2 id="chart-heading">Verlauf</h2>
+      <label class="field field-check">
+        <input #realBox type="checkbox" [checked]="real()" (change)="real.set(realBox.checked)" />
+        In heutiger Kaufkraft
+      </label>
+    </div>
+    <app-line-chart
+      [points]="chartPoints()"
+      labelHeading="Jahr"
+      [caption]="chartCaption()"
+    />
+  </section>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="assumptions-heading">
+      <h2 id="assumptions-heading">Annahmen</h2>
+      <form class="stack" novalidate (input)="save()" (submit)="$event.preventDefault()">
+        <div class="form">
+          @for (field of fields; track field.key) {
+            <label class="field">
+              {{ field.label }}
+              <input
+                type="number"
+                inputmode="decimal"
+                step="0.5"
+                [formField]="assumptionsForm[field.key]"
+              />
+              @if (field.hint) {
+                <span class="field-hint">{{ field.hint }}</span>
+              }
+              @if (assumptionsForm[field.key]().errors().length) {
+                <span class="field-error">{{
+                  assumptionsForm[field.key]().errors()[0].message
+                }}</span>
+              }
+            </label>
+          }
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="resetAssumptions()">
+            Standardwerte
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="scenarios-heading">
+      <h2 id="scenarios-heading">Szenarien für die Depot-Rendite</h2>
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">
+            Wert zum Rentenbeginn je Depot-Rendite, übrige Annahmen unverändert
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Rendite</th>
+              <th scope="col" class="amount">Vor Steuern</th>
+              <th scope="col" class="amount">Steuer</th>
+              <th scope="col" class="amount">Nach Steuern</th>
+              <th scope="col" class="amount">Heutige Kaufkraft</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (scenario of scenarios(); track scenario.depotReturn) {
+              <tr [class.current]="scenario.current">
+                <th scope="row">
+                  {{ pct(scenario.depotReturn) }}
+                  @if (scenario.current) {
+                    <span class="visually-hidden">(deine Annahme)</span>
+                  }
+                </th>
+                <td class="amount">{{ eur(scenario.projection.gross) }}</td>
+                <td class="amount">−{{ eur(scenario.projection.tax.tax) }}</td>
+                <td class="amount">{{ eur(scenario.projection.net) }}</td>
+                <td class="amount">{{ eur(scenario.projection.realNet) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="card card-tint" aria-labelledby="notes-heading">
+    <h2 id="notes-heading">So ist gerechnet</h2>
+    <ul class="facts">
+      <li>
+        Rechenbeispiel mit deinen Annahmen, keine Prognose und keine Anlageberatung. Renditen sind
+        nicht garantiert.
+      </li>
+      <li>
+        Verzinsung monatlich, Sparraten am Monatsende; Depots mit den Sparplan-Raten ihrer
+        Positionen, sonst mit wiederkehrenden Sparraten auf das Konto.
+      </li>
+      <li>
+        Kapitalertragsteuer: Annahme, dass alle Depots zum Rentenbeginn auf einmal verkauft werden.
+        Teilfreistellung nach Anlageart (Aktien-ETF 30 %, Fonds 15 %), Sparerpauschbetrag einmal.
+        Die jährliche Vorabpauschale ist nicht einzeln gerechnet, Krypto ist nach einem Jahr
+        Haltedauer steuerfrei.
+      </li>
+      <li>Tagesgeldzinsen werden jedes Jahr versteuert, deshalb gilt der Zins nach Steuern.</li>
+      @if (hasRealEstate()) {
+        <li>
+          Immobilien: Ein privater Verkauf ist nach {{ speculationYears }} Jahren Haltedauer
+          steuerfrei; Mieteinnahmen sind nicht berücksichtigt.
+          @if (hasLoan()) {
+            Kredite bleiben auf dem heutigen Stand, die Tilgung ist nicht gerechnet.
+          }
+        </li>
+      }
+    </ul>
+  </section>
+}
