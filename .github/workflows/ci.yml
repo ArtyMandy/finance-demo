@@ -24,16 +24,9 @@ jobs:
 
       - run: npm ci
 
-      - name: Build
-        run: npx ng build
-
       # On failure, the end of the output is also shown as an annotation on the PR.
+      - name: Build
+        run: bash .github/annotate-failure.sh "ng build" npx ng build
+
       - name: Test
-        run: |
-          set -o pipefail
-          npx ng test --watch=false 2>&1 | tee test-output.txt || {
-            tail -c 30000 test-output.txt | sed 's/\x1b\[[0-9;]*m//g' \
-              | awk 'BEGIN { printf "::error title=ng test failed::" }
-                     { gsub(/%/, "%25"); printf "%s%%0A", $0 } END { print "" }'
-            exit 1
-          }
+        run: bash .github/annotate-failure.sh "ng test" npx ng test --watch=false
