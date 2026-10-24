@@ -1,5 +1,6 @@
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { form, FormField, min, required, submit } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 import { Clock } from '../core/clock';
 import { plannedIncome } from '../data/analytics';
 import { FinanceStore, newId } from '../data/finance-store';
@@ -9,7 +10,7 @@ import { formatEuro, formatPercent } from '../shared/format';
 import { PensionCalculator } from './pension-calculator';
 
 @Component({
-  imports: [FormField, PensionCalculator],
+  imports: [FormField, PensionCalculator, RouterLink],
   selector: 'app-pension',
   templateUrl: './pension.html',
   styles: `

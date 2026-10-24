@@ -211,7 +211,11 @@ export class FinanceStore {
       const holdingIds = new Set(data.holdings.filter((h) => h.accountId === id).map((h) => h.id));
       return {
         ...data,
-        accounts: data.accounts.filter((account) => account.id !== id),
+        accounts: data.accounts
+          .filter((account) => account.id !== id)
+          .map((account) =>
+            account.linkedLoanId === id ? { ...account, linkedLoanId: '' } : account,
+          ),
         recurring: data.recurring.map((item) =>
           item.targetAccountId === id ? { ...item, targetAccountId: '' } : item,
         ),

@@ -52,6 +52,11 @@ export const SECONDARY_NAV: readonly NavItem[] = [
     icon: ['M4 10h16', 'M5 10v9h14v-9', 'M12 3l8 5H4z', 'M9 14v3', 'M15 14v3'],
   },
   {
+    path: '/vorsorgevermoegen',
+    label: 'Vorsorgevermögen',
+    icon: ['M4 20h16', 'M6 20v-5h3v5', 'M10.5 20v-9h3v9', 'M15 20v-13h3v13', 'M5 9l5-4 4 3 5-4'],
+  },
+  {
     path: '/wissen',
     label: 'Anlage-Wissen',
     icon: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z', 'M4 21V5'],

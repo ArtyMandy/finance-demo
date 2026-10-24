@@ -60,6 +60,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pension/pension').then((m) => m.Pension),
   },
   {
+    path: 'vorsorgevermoegen',
+    title: title('Vorsorgevermögen'),
+    loadComponent: () =>
+      import('./retirement-assets/retirement-assets').then((m) => m.RetirementAssets),
+  },
+  {
     path: 'wissen',
     title: title('Anlage-Wissen'),
     loadComponent: () => import('./knowledge/knowledge').then((m) => m.Knowledge),

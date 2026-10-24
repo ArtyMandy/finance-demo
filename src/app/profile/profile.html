@@ -48,6 +48,28 @@
             <input type="checkbox" [formField]="profileForm.jointAssessment" />
             Zusammenveranlagung (verheiratet / eingetragene Partnerschaft)
           </label>
+          <label class="field">
+            Geburtsjahr
+            <input
+              type="number"
+              inputmode="numeric"
+              autocomplete="bday-year"
+              [formField]="profileForm.birthYear"
+            />
+            <span class="field-hint">Optional, für die Hochrechnung des Vorsorgevermögens.</span>
+            @if (profileForm.birthYear().touched() && profileForm.birthYear().errors().length) {
+              <span class="field-error">{{ profileForm.birthYear().errors()[0].message }}</span>
+            }
+          </label>
+          <label class="field">
+            Geplantes Renteneintrittsalter
+            <input type="number" inputmode="numeric" [formField]="profileForm.retirementAge" />
+            @if (
+              profileForm.retirementAge().touched() && profileForm.retirementAge().errors().length
+            ) {
+              <span class="field-error">{{ profileForm.retirementAge().errors()[0].message }}</span>
+            }
+          </label>
         </div>
         <div class="form-actions" aria-live="polite">
           <button type="submit" class="btn">Profil speichern</button>
