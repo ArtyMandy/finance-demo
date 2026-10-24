@@ -203,10 +203,11 @@ describe('analytics', () => {
 
   it('leaves assets or debts out of the net worth on request', () => {
     const wealth = { cash: 1000, investments: 500, other: 300, debts: 200, total: 1600 };
-    expect(wealthTotal(wealth, { includeAssets: true, includeDebts: true })).toBe(1600);
-    expect(wealthTotal(wealth, { includeAssets: false, includeDebts: true })).toBe(1300);
-    expect(wealthTotal(wealth, { includeAssets: true, includeDebts: false })).toBe(1800);
-    const options = { includeAssets: true, includeDebts: false };
+    const all = { includeAssets: true, includeDebts: true, includeRetirement: true };
+    expect(wealthTotal(wealth, all)).toBe(1600);
+    expect(wealthTotal(wealth, { ...all, includeAssets: false })).toBe(1300);
+    expect(wealthTotal(wealth, { ...all, includeDebts: false })).toBe(1800);
+    const options = { ...all, includeDebts: false };
     expect(wealthHistory(finance, ['2026-10'], '2026-10', options)).toEqual([7500]);
   });
 
