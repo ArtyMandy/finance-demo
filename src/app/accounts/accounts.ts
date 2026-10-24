@@ -10,7 +10,13 @@ import {
   wealthBreakdown,
 } from '../data/analytics';
 import { FinanceStore, newId } from '../data/finance-store';
-import { Account, ACCOUNT_TYPE_LABELS, AccountType } from '../data/models';
+import {
+  Account,
+  ACCOUNT_TYPE_LABELS,
+  AccountType,
+  RETIREMENT_ACCOUNT_TYPES,
+} from '../data/models';
+import { isRetirementAccount } from '../data/retirement';
 import { formatDate, formatEuro } from '../shared/format';
 
 const CASH_TYPES = new Set<string>(['giro', 'kreditkarte', 'tagesgeld']);
@@ -38,6 +44,7 @@ export class Accounts {
       cash: isCash(account),
       balance: accountBalance(data, account),
       inflow: monthlyInflow(data, account.id, this.clock.month()),
+      retirement: isRetirementAccount(account),
       fromHoldings: account.type === 'depot' && holdingsValue(data, account.id) !== undefined,
       lastValuation:
         [...account.valuations].sort((a, b) => a.date.localeCompare(b.date)).at(-1)?.date ?? '',
@@ -52,11 +59,20 @@ export class Accounts {
     type: 'giro' as string,
     institution: '',
     amount: 0,
+    retirement: false,
+    linkedLoanId: '',
   });
   protected readonly accountForm = form(this.model, (s) => {
     required(s.name, { message: 'Bitte gib einen Namen ein.' });
   });
   protected readonly isCashType = computed(() => CASH_TYPES.has(this.model().type));
+  protected readonly canBeRetirement = computed(() =>
+    (RETIREMENT_ACCOUNT_TYPES as readonly string[]).includes(this.model().type),
+  );
+  /** Loans that can finance a Sachwert. */
+  protected readonly loans = computed(() =>
+    this.store.data().accounts.filter((account) => account.type === 'kredit'),
+  );
 
   protected open(account?: Account): void {
     this.editing.set(account);
@@ -69,8 +85,17 @@ export class Accounts {
             type: account.type,
             institution: account.institution,
             amount: this.enteredValue(account, accountBalance(data, account)),
+            retirement: account.retirement,
+            linkedLoanId: account.linkedLoanId,
           }
-        : { name: '', type: 'giro', institution: '', amount: 0 },
+        : {
+            name: '',
+            type: 'giro',
+            institution: '',
+            amount: 0,
+            retirement: false,
+            linkedLoanId: '',
+          },
     );
     this.dialog().nativeElement.showModal();
   }
@@ -87,8 +112,8 @@ export class Accounts {
         institution: value.institution.trim(),
         openingBalance: existing?.openingBalance ?? 0,
         valuations: existing?.valuations ?? [],
-        retirement: existing?.retirement ?? false,
-        linkedLoanId: existing?.linkedLoanId ?? '',
+        retirement: this.canBeRetirement() && value.retirement,
+        linkedLoanId: this.linkedLoan(type, value.retirement, value.linkedLoanId),
       };
       this.store.save('accounts', account);
       const amount = this.enteredValue(account, value.amount);
@@ -98,6 +123,12 @@ export class Accounts {
       if (current !== amount) this.store.setValuation(account.id, amount);
       this.dialog().nativeElement.close();
     });
+  }
+
+  /** Only a Sachwert counting as Vorsorgevermögen keeps its loan, and only an existing one. */
+  private linkedLoan(type: AccountType, retirement: boolean, loanId: string): string {
+    const exists = this.loans().some((loan) => loan.id === loanId);
+    return type === 'sachwert' && retirement && exists ? loanId : '';
   }
 
   /** Cash balances can be negative (overdraft); other values are stored positive. */

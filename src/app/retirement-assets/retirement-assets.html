@@ -1,0 +1,86 @@
+<main id="inhalt" class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Depots, Immobilien, Tagesgeld, Sparpläne</span>
+      <h1>Vorsorgevermögen</h1>
+    </div>
+    <a routerLink="/konten" class="btn btn-secondary">Konten zuordnen</a>
+  </div>
+
+  <div class="grid-stats">
+    <div class="card card-dark stat">
+      <span class="label">Vorsorgevermögen heute</span>
+      <span class="stat-value">{{ eurRounded(status().total) }}</span>
+    </div>
+    @for (item of kinds(); track item.kind) {
+      <div class="card stat">
+        <span class="label">{{ item.label }}</span>
+        <span class="stat-value">{{ eurRounded(item.value) }}</span>
+      </div>
+    }
+    <div class="card stat">
+      <span class="label">Sparraten / Monat</span>
+      <span class="stat-value">{{ eurRounded(status().monthlyContributions) }}</span>
+    </div>
+  </div>
+  <p class="meta">
+    Angespartes Kapital für das Alter. Die erwarteten Renten (gesetzlich, betrieblich, Riester,
+    Rürup) stehen unter <a routerLink="/altersvorsorge">Altersvorsorge</a>.
+  </p>
+
+  <section class="card" aria-labelledby="positions-heading">
+    <h2 id="positions-heading">Zugeordnete Konten</h2>
+    @if (status().positions.length) {
+      <ul class="list">
+        @for (position of status().positions; track position.account.id) {
+          <li>
+            <span class="avatar" aria-hidden="true">{{ position.account.name.charAt(0) }}</span>
+            <span class="list-main">
+              <span class="list-title">{{ position.account.name }}</span>
+              <span class="meta">
+                {{ typeLabel[position.account.type]
+                }}{{ position.account.institution ? ' · ' + position.account.institution : '' }}
+                @if (position.loan) {
+                  · Wert {{ eur(position.value) }} −
+                  {{ loanName(position.account.linkedLoanId) }} {{ eur(position.loan) }}
+                }
+                @if (position.monthlyContribution) {
+                  · Sparrate +{{ eur(position.monthlyContribution) }} / Monat
+                }
+              </span>
+            </span>
+            <span class="amount list-title" [class.negative]="position.netValue < 0">{{
+              eur(position.netValue)
+            }}</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">
+        Noch keine Konten zugeordnet. Öffne unter
+        <a routerLink="/konten">Konten</a> ein Depot, Tagesgeld oder eine vermietete Immobilie und
+        setze „Zählt zum Vorsorgevermögen“.
+      </p>
+    }
+  </section>
+
+  <section class="card card-tint" aria-labelledby="horizon-heading">
+    <h2 id="horizon-heading">Bis zum Rentenbeginn</h2>
+    @if (yearsLeft() !== undefined) {
+      <p>
+        Mit {{ profile().retirementAge }} Jahren in Rente: noch
+        <strong>{{ yearsLeft() }} {{ yearsLeft() === 1 ? 'Jahr' : 'Jahre' }}</strong>
+        (Jahrgang {{ profile().birthYear }}).
+      </p>
+    } @else {
+      <p>
+        Trage im <a routerLink="/profil">Profil</a> dein Geburtsjahr ein, damit die Laufzeit bis
+        zum Rentenbeginn berechnet werden kann.
+      </p>
+    }
+    <p class="meta">
+      Die Hochrechnung mit Rendite-Szenarien und Kapitalertragsteuer folgt. Alle Werte sind
+      Rechenbeispiele, keine Prognose und keine Anlageberatung.
+    </p>
+  </section>
+</main>

@@ -38,7 +38,12 @@
           <li>
             <span class="avatar" aria-hidden="true">{{ row.account.name.charAt(0) }}</span>
             <span class="list-main">
-              <span class="list-title">{{ row.account.name }}</span>
+              <span class="list-title"
+                >{{ row.account.name }}
+                @if (row.retirement) {
+                  <span class="pill pill-success">Vorsorge</span>
+                }
+              </span>
               <span class="meta">
                 {{ typeLabel(row.account.type)
                 }}{{ row.account.institution ? ' · ' + row.account.institution : '' }}
@@ -125,6 +130,39 @@
             >
           }
         </label>
+        @if (canBeRetirement()) {
+          <label class="field field-check">
+            <input
+              type="checkbox"
+              aria-describedby="retirement-hint"
+              [formField]="accountForm.retirement"
+            />
+            Zählt zum Vorsorgevermögen
+          </label>
+          <p id="retirement-hint" class="field-hint">
+            @if (model().type === 'sachwert') {
+              Nur für vermietete oder als Kapitalanlage gehaltene Immobilien, nicht für die selbst
+              genutzte Wohnung.
+            } @else {
+              Für Geld, das du fürs Alter zurücklegst. Soll nur ein Teil zählen, lege dafür ein
+              eigenes Konto an.
+            }
+          </p>
+          @if (model().type === 'sachwert' && model().retirement) {
+            <label class="field">
+              Finanziert über Kredit
+              <select aria-describedby="loan-hint" [formField]="accountForm.linkedLoanId">
+                <option value="">kein Kredit</option>
+                @for (loan of loans(); track loan.id) {
+                  <option [value]="loan.id">{{ loan.name }}</option>
+                }
+              </select>
+              <span id="loan-hint" class="field-hint"
+                >Die Restschuld wird vom Wert abgezogen.</span
+              >
+            </label>
+          }
+        }
       </div>
       @if (confirmDelete()) {
         <p class="field-error" role="alert">

@@ -1,5 +1,5 @@
 import { Component, computed, DOCUMENT, inject, linkedSignal, signal } from '@angular/core';
-import { form, FormField, max, min, submit } from '@angular/forms/signals';
+import { form, FormField, max, min, submit, validate } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
 import { Clock } from '../core/clock';
@@ -42,6 +42,17 @@ export class Profile {
   protected readonly profileForm = form(this.model, (s) => {
     min(s.children, 0, { message: 'Bitte 0 oder mehr eingeben.' });
     max(s.children, 20, { message: 'Bitte höchstens 20 eingeben.' });
+    validate(s.birthYear, ({ value }) => {
+      const year = value();
+      const current = Number(this.clock.today().slice(0, 4));
+      if (!year || (year >= current - 100 && year <= current)) return undefined;
+      return {
+        kind: 'birthYear',
+        message: 'Bitte ein Geburtsjahr wie 1985 eingeben oder leer lassen.',
+      };
+    });
+    min(s.retirementAge, 50, { message: 'Bitte ein Alter ab 50 eingeben.' });
+    max(s.retirementAge, 80, { message: 'Bitte ein Alter bis 80 eingeben.' });
   });
   protected readonly saved = signal(false);
 
@@ -61,6 +72,8 @@ export class Profile {
         jointAssessment: value.jointAssessment,
         churchTax: Number(value.churchTax) as ChurchTax,
         children: Math.max(0, Math.floor(value.children || 0)),
+        birthYear: Math.floor(value.birthYear || 0),
+        retirementAge: Math.floor(value.retirementAge || RULES.vorsorge.defaultRetirementAge),
       });
       this.saved.set(true);
     });
