@@ -30,10 +30,24 @@ const FIELDS: readonly { key: AssumptionKey; label: string; hint: string }[] = [
   { key: 'inflation', label: 'Inflation p. a. (%)', hint: 'Für die heutige Kaufkraft.' },
 ];
 
+/** Applies a conversion to every assumption, e.g. rate → percent. */
+function mapAssumptions(
+  a: RetirementAssumptions,
+  convert: (value: number) => number,
+): RetirementAssumptions {
+  return {
+    depotReturn: convert(a.depotReturn),
+    cashReturn: convert(a.cashReturn),
+    realEstateGrowth: convert(a.realEstateGrowth),
+    contributionGrowth: convert(a.contributionGrowth),
+    inflation: convert(a.inflation),
+  };
+}
+
 const toPercent = (a: RetirementAssumptions) =>
-  Object.fromEntries(
-    Object.entries(a).map(([key, value]) => [key, Math.round(value * 10000) / 100]),
-  ) as RetirementAssumptions;
+  mapAssumptions(a, (rate) => Math.round(rate * 10000) / 100);
+const toRate = (a: RetirementAssumptions) =>
+  mapAssumptions(a, (percent) => (Number(percent) || 0) / 100);
 
 /** Projection of the Vorsorgevermögen until retirement, with Kapitalertragsteuer. */
 @Component({
@@ -104,10 +118,7 @@ export class RetirementProjection {
   private readonly assumptions = computed<RetirementAssumptions>(() => {
     const saved = this.store.data().retirementAssumptions;
     if (this.assumptionsForm().invalid()) return saved;
-    const model = this.model();
-    return Object.fromEntries(
-      FIELDS.map(({ key }) => [key, (Number(model[key]) || 0) / 100]),
-    ) as unknown as RetirementAssumptions;
+    return toRate(this.model());
   });
 
   private readonly options = computed<ProjectionOptions>(() => ({
