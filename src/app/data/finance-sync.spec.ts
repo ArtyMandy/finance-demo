@@ -43,6 +43,8 @@ function account(name: string) {
     id: name,
     name,
     type: 'giro' as const,
+    retirement: false,
+    linkedLoanId: '',
     institution: '',
     openingBalance: 0,
     valuations: [],

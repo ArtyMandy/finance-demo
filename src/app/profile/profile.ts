@@ -54,6 +54,7 @@ export class Profile {
     submit(this.profileForm, async () => {
       const value = this.model();
       this.store.updateProfile({
+        ...this.store.data().profile,
         name: value.name.trim(),
         street: value.street.trim(),
         city: value.city.trim(),

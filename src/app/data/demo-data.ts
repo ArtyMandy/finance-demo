@@ -273,10 +273,14 @@ export function createDemoData(today: IsoDate): FinanceData {
       jointAssessment: false,
       churchTax: 0,
       children: 1,
+      birthYear: 1990,
+      retirementAge: 67,
     },
     accounts: [
       {
         id: 'giro',
+        retirement: false,
+        linkedLoanId: '',
         name: 'Girokonto',
         type: 'giro',
         institution: 'ING',
@@ -288,6 +292,8 @@ export function createDemoData(today: IsoDate): FinanceData {
       },
       {
         id: 'tagesgeld',
+        retirement: false,
+        linkedLoanId: '',
         name: 'Tagesgeld',
         type: 'tagesgeld',
         institution: 'ING',
@@ -299,6 +305,8 @@ export function createDemoData(today: IsoDate): FinanceData {
       },
       {
         id: 'depot',
+        retirement: true,
+        linkedLoanId: '',
         name: 'Depot',
         type: 'depot',
         institution: 'Trade Republic',
@@ -310,6 +318,8 @@ export function createDemoData(today: IsoDate): FinanceData {
       },
       {
         id: 'auto',
+        retirement: false,
+        linkedLoanId: '',
         name: 'Auto',
         type: 'sachwert',
         institution: '',
@@ -318,6 +328,8 @@ export function createDemoData(today: IsoDate): FinanceData {
       },
       {
         id: 'kfw',
+        retirement: false,
+        linkedLoanId: '',
         name: 'Studienkredit',
         type: 'kredit',
         institution: 'KfW',
@@ -325,6 +337,29 @@ export function createDemoData(today: IsoDate): FinanceData {
         valuations: [
           { date: day(firstMonth, 1), value: 4200 },
           { date: day(addMonths(month, -1), 1), value: 3400 },
+        ],
+      },
+      {
+        id: 'wohnung',
+        retirement: true,
+        linkedLoanId: 'immokredit',
+        name: 'Wohnung Leipzig (vermietet)',
+        type: 'sachwert',
+        institution: '',
+        openingBalance: 0,
+        valuations: [{ date: day(firstMonth, 1), value: 185000 }],
+      },
+      {
+        id: 'immokredit',
+        retirement: false,
+        linkedLoanId: '',
+        name: 'Immobilienkredit',
+        type: 'kredit',
+        institution: 'Sparkasse',
+        openingBalance: 0,
+        valuations: [
+          { date: day(firstMonth, 1), value: 128000 },
+          { date: day(addMonths(month, -1), 1), value: 124500 },
         ],
       },
     ],
