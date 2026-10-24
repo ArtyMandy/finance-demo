@@ -1,9 +1,11 @@
 import {
   accountBalance,
   dueItems,
+  includedRetirement,
   monthlyInflow,
   monthTotals,
   spendingByCategory,
+  visibleWealth,
   wealthBreakdown,
   wealthHistory,
   wealthTotal,
@@ -202,13 +204,67 @@ describe('analytics', () => {
   });
 
   it('leaves assets or debts out of the net worth on request', () => {
-    const wealth = { cash: 1000, investments: 500, other: 300, debts: 200, total: 1600 };
+    const none = { cash: 0, investments: 0, other: 0, debts: 0 };
+    const wealth = {
+      cash: 1000,
+      investments: 500,
+      other: 300,
+      debts: 200,
+      total: 1600,
+      retirement: none,
+    };
     const all = { includeAssets: true, includeDebts: true, includeRetirement: true };
     expect(wealthTotal(wealth, all)).toBe(1600);
     expect(wealthTotal(wealth, { ...all, includeAssets: false })).toBe(1300);
     expect(wealthTotal(wealth, { ...all, includeDebts: false })).toBe(1800);
     const options = { ...all, includeDebts: false };
     expect(wealthHistory(finance, ['2026-10'], '2026-10', options)).toEqual([7500]);
+  });
+
+  it('leaves the Vorsorgevermögen and the loans of its properties out on request', () => {
+    const withRetirement: FinanceData = {
+      ...finance,
+      accounts: [
+        ...finance.accounts.map((account) =>
+          account.id === 'depot' ? { ...account, retirement: true } : account,
+        ),
+        {
+          ...finance.accounts[0],
+          id: 'flat',
+          type: 'sachwert',
+          retirement: true,
+          linkedLoanId: 'mortgage',
+          valuations: [{ date: '2026-01-01', value: 100000 }],
+        },
+        {
+          ...finance.accounts[0],
+          id: 'mortgage',
+          type: 'kredit',
+          valuations: [{ date: '2026-01-01', value: 60000 }],
+        },
+      ],
+    };
+    const wealth = wealthBreakdown(withRetirement);
+    expect(wealth.retirement).toEqual({ cash: 0, investments: 5000, other: 100000, debts: 60000 });
+
+    const all = { includeAssets: true, includeDebts: true, includeRetirement: true };
+    expect(wealthTotal(wealth, all)).toBe(5500 + 40000);
+    expect(includedRetirement(wealth, all)).toBe(45000);
+
+    const without = { ...all, includeRetirement: false };
+    expect(visibleWealth(wealth, without)).toEqual({
+      cash: 2500,
+      investments: 0,
+      other: 0,
+      debts: 2000,
+    });
+    expect(wealthTotal(wealth, without)).toBe(500);
+    expect(includedRetirement(wealth, without)).toBe(0);
+    expect(wealthHistory(withRetirement, ['2026-10'], '2026-10', without)).toEqual([500]);
+
+    // Without Sachwerte only the property is left out; its loan still counts as a debt.
+    const noAssets = { ...all, includeAssets: false };
+    expect(includedRetirement(wealth, noAssets)).toBe(5000 - 60000);
   });
 
   it('lists the items due in a month, income first', () => {

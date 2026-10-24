@@ -3,14 +3,18 @@ import { RouterLink } from '@angular/router';
 import { Clock } from '../core/clock';
 import {
   dueItems,
+  includedRetirement,
+  isRetirementAccount,
   monthTotals,
   spendingByCategory,
+  visibleWealth,
   wealthBreakdown,
   wealthHistory,
   wealthTotal,
 } from '../data/analytics';
 import { createDemoData } from '../data/demo-data';
 import { FinanceStore } from '../data/finance-store';
+import { WealthOptions } from '../data/models';
 import { savingsHints } from '../data/insights';
 import { daysBetween, lastDayOf, lastMonths } from '../data/months';
 import { CategoryBars } from '../shared/category-bars';
@@ -108,11 +112,24 @@ export class Overview {
 
   protected readonly wealth = computed(() => wealthBreakdown(this.store.data()));
   protected readonly options = computed(() => this.store.data().wealthOptions);
+  protected readonly parts = computed(() => visibleWealth(this.wealth(), this.options()));
+  /** True once an account counts towards the Vorsorgevermögen. */
+  protected readonly hasRetirement = computed(() =>
+    this.store.data().accounts.some(isRetirementAccount),
+  );
+  protected readonly retirement = computed(() =>
+    includedRetirement(this.wealth(), this.options()),
+  );
   protected readonly historyNote = computed(() => {
-    const { includeAssets, includeDebts } = this.options();
-    if (includeAssets && includeDebts) return '';
-    if (!includeAssets && !includeDebts) return ' · ohne Sachwerte und Schulden';
-    return includeAssets ? ' · ohne Schulden' : ' · ohne Sachwerte';
+    const { includeAssets, includeDebts, includeRetirement } = this.options();
+    const left = [
+      includeAssets ? '' : 'Sachwerte',
+      includeDebts ? '' : 'Schulden',
+      includeRetirement || !this.hasRetirement() ? '' : 'Vorsorgevermögen',
+    ].filter(Boolean);
+    if (!left.length) return '';
+    const last = left.pop();
+    return ` · ohne ${left.length ? `${left.join(', ')} und ${last}` : last}`;
   });
   protected readonly total = computed(() => wealthTotal(this.wealth(), this.options()));
   protected readonly sparkline = computed(() => this.history());
@@ -162,7 +179,7 @@ export class Overview {
   protected readonly pct = formatPercent;
   protected readonly signedPct = formatSignedPercent;
 
-  protected toggle(option: 'includeAssets' | 'includeDebts', event: Event): void {
+  protected toggle(option: keyof WealthOptions, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     this.store.setWealthOptions({ ...this.options(), [option]: checked });
   }

@@ -1,5 +1,7 @@
 import { capitalGainsTaxRate, type ChurchTax, RULES, sparerPauschbetrag } from '../rules/rules';
-import { accountBalance } from './analytics';
+import { accountBalance, isRetirementAccount } from './analytics';
+
+export { isRetirementAccount };
 import {
   Account,
   AccountType,
@@ -7,7 +9,6 @@ import {
   FinanceData,
   Month,
   Profile,
-  RETIREMENT_ACCOUNT_TYPES,
   RetirementAssumptions,
 } from './models';
 import { isActiveIn, isSaving, monthlyEquivalent } from './recurring';
@@ -63,10 +64,6 @@ export interface RetirementStatus {
   total: number;
   byKind: Record<RetirementKind, number>;
   monthlyContributions: number;
-}
-
-export function isRetirementAccount(account: Account): boolean {
-  return account.retirement && RETIREMENT_ACCOUNT_TYPES.includes(account.type);
 }
 
 /**
