@@ -1,6 +1,7 @@
 import {
   Account,
   CASH_ACCOUNT_TYPES,
+  RETIREMENT_ACCOUNT_TYPES,
   FinanceData,
   IsoDate,
   Month,
@@ -36,34 +37,82 @@ export function accountBalance(data: FinanceData, account: Account, until?: IsoD
   return account.type === 'kredit' ? -Math.abs(value) : value;
 }
 
-export interface WealthBreakdown {
+/** Counts towards the Vorsorgevermögen (only depots, Tagesgeld and Sachwerte can). */
+export function isRetirementAccount(account: Account): boolean {
+  return account.retirement && RETIREMENT_ACCOUNT_TYPES.includes(account.type);
+}
+
+export interface WealthParts {
   cash: number;
   investments: number;
   other: number;
   debts: number;
+}
+
+export interface WealthBreakdown extends WealthParts {
   total: number;
+  /**
+   * Part of each category that belongs to the Vorsorgevermögen: the marked accounts and the
+   * loans linked to marked properties.
+   */
+  retirement: WealthParts;
+}
+
+const noParts = (): WealthParts => ({ cash: 0, investments: 0, other: 0, debts: 0 });
+
+function addTo(parts: WealthParts, account: Account, balance: number): void {
+  if (account.type === 'kredit') parts.debts += -balance;
+  else if (account.type === 'depot') parts.investments += balance;
+  else if (account.type === 'sachwert') parts.other += balance;
+  else parts.cash += balance;
 }
 
 export function wealthBreakdown(data: FinanceData, until?: IsoDate): WealthBreakdown {
-  const result: WealthBreakdown = { cash: 0, investments: 0, other: 0, debts: 0, total: 0 };
+  const result: WealthBreakdown = { ...noParts(), total: 0, retirement: noParts() };
+  const linkedLoans = new Set(
+    data.accounts
+      .filter((account) => isRetirementAccount(account) && account.type === 'sachwert')
+      .map((account) => account.linkedLoanId),
+  );
   for (const account of data.accounts) {
     const balance = accountBalance(data, account, until);
-    if (account.type === 'kredit') result.debts += -balance;
-    else if (account.type === 'depot') result.investments += balance;
-    else if (account.type === 'sachwert') result.other += balance;
-    else result.cash += balance;
+    addTo(result, account, balance);
+    const linkedLoan = account.type === 'kredit' && linkedLoans.has(account.id);
+    if (isRetirementAccount(account) || linkedLoan) addTo(result.retirement, account, balance);
     result.total += balance;
   }
   return result;
 }
 
-/** Net worth with assets and debts left out when the options say so. */
+/**
+ * The categories as the overview shows them: Sachwerte, debts and the Vorsorgevermögen left out
+ * when the options say so.
+ */
+export function visibleWealth(wealth: WealthBreakdown, options: WealthOptions): WealthParts {
+  const r = options.includeRetirement ? noParts() : wealth.retirement;
+  return {
+    cash: wealth.cash - r.cash,
+    investments: wealth.investments - r.investments,
+    other: options.includeAssets ? wealth.other - r.other : 0,
+    debts: options.includeDebts ? wealth.debts - r.debts : 0,
+  };
+}
+
+/** Net worth with Sachwerte, debts or the Vorsorgevermögen left out when the options say so. */
 export function wealthTotal(wealth: WealthBreakdown, options: WealthOptions): number {
+  const parts = visibleWealth(wealth, options);
+  return parts.cash + parts.investments + parts.other - parts.debts;
+}
+
+/** Vorsorgevermögen contained in the net worth as the options count it. */
+export function includedRetirement(wealth: WealthBreakdown, options: WealthOptions): number {
+  if (!options.includeRetirement) return 0;
+  const r = wealth.retirement;
   return (
-    wealth.cash +
-    wealth.investments +
-    (options.includeAssets ? wealth.other : 0) -
-    (options.includeDebts ? wealth.debts : 0)
+    r.cash +
+    r.investments +
+    (options.includeAssets ? r.other : 0) -
+    (options.includeDebts ? r.debts : 0)
   );
 }
 

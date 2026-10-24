@@ -45,13 +45,16 @@
       </div>
       <app-sparkline [values]="sparkline()" />
       <p class="split meta">
-        <span>Konten {{ eur(wealth().cash) }}</span>
-        <span>Depots {{ eur(wealth().investments) }}</span>
+        <span>Konten {{ eur(parts().cash) }}</span>
+        <span>Depots {{ eur(parts().investments) }}</span>
         @if (options().includeAssets) {
-          <span>Sachwerte {{ eur(wealth().other) }}</span>
+          <span>Sachwerte {{ eur(parts().other) }}</span>
         }
-        @if (options().includeDebts && wealth().debts) {
-          <span>Schulden −{{ eur(wealth().debts) }}</span>
+        @if (options().includeDebts && parts().debts) {
+          <span>Schulden −{{ eur(parts().debts) }}</span>
+        }
+        @if (retirement() > 0) {
+          <span>davon Vorsorge {{ eur(retirement()) }}</span>
         }
       </p>
       <fieldset class="options">
@@ -72,6 +75,16 @@
           />
           Schulden einrechnen
         </label>
+        @if (hasRetirement()) {
+          <label class="field-check">
+            <input
+              type="checkbox"
+              [checked]="options().includeRetirement"
+              (change)="toggle('includeRetirement', $event)"
+            />
+            Vorsorgevermögen einrechnen
+          </label>
+        }
       </fieldset>
     </section>
 

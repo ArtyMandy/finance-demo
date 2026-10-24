@@ -39,8 +39,9 @@ Ausweis **Brutto-Endwert → geschätzte Steuer → Netto-Endwert**:
 - Immobilien: Verkauf nach 10 Jahren Haltedauer steuerfrei (§ 23 EStG) – nur Hinweis, keine Berechnung.
 
 ### Startseite
-- Die Kachel „Gesamtvermögen“ bekommt den Schalter „Vorsorgevermögen einbeziehen“ (neben den bestehenden Filtern für Sachwerte und Schulden).
-- Aus: Gesamtvermögen, Aufteilung, Sparkline, Vermögensentwicklung und Veränderung ohne die Vorsorge-Konten.
+- Die Kachel „Gesamtvermögen“ bekommt den Schalter „Vorsorgevermögen einrechnen“ (neben den bestehenden Filtern für Sachwerte und Schulden). Er erscheint, sobald ein Konto zum Vorsorgevermögen zählt.
+- Ein: Die Aufteilung zeigt zusätzlich „davon Vorsorge …“.
+- Aus: Gesamtvermögen, Aufteilung, Sparkline, Vermögensentwicklung und Veränderung ohne die Vorsorge-Konten und ohne die Kredite, die mit vorsorgerelevanten Immobilien verknüpft sind.
 - Die Einstellung wird in den Finanzdaten gespeichert und synchronisiert.
 
 ### Abgrenzung
