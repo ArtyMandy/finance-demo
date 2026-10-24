@@ -40,6 +40,52 @@ const PAGE_SIZE = 100;
     .who {
       font-weight: 600;
     }
+    /* Narrow screens: each booking becomes a compact block instead of a wide table row. */
+    @media (max-width: 40rem) {
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      table,
+      tbody,
+      tr,
+      td {
+        display: block;
+      }
+      tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.25rem 0.75rem;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--color-divider);
+      }
+      td {
+        padding: 0;
+        border: 0;
+      }
+      td.date {
+        color: var(--color-muted);
+        font-size: 0.8125rem;
+      }
+      td.who-cell {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        overflow-wrap: anywhere;
+      }
+      td.amount {
+        grid-column: 2;
+        grid-row: 1;
+        font-weight: 600;
+      }
+      td.category select {
+        width: 100%;
+        min-height: 2.75rem;
+      }
+    }
   `,
 })
 export class Transactions {
