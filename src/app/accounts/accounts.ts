@@ -87,6 +87,8 @@ export class Accounts {
         institution: value.institution.trim(),
         openingBalance: existing?.openingBalance ?? 0,
         valuations: existing?.valuations ?? [],
+        retirement: existing?.retirement ?? false,
+        linkedLoanId: existing?.linkedLoanId ?? '',
       };
       this.store.save('accounts', account);
       const amount = this.enteredValue(account, value.amount);

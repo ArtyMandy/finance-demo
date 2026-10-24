@@ -13,6 +13,7 @@ import {
   Month,
   Profile,
   RecurringItem,
+  RetirementAssumptions,
   Transaction,
   Valuation,
   WealthOptions,
@@ -67,6 +68,7 @@ export function normalizeData(raw: unknown): FinanceData {
     version: 1,
     profile: { ...base.profile, ...data.profile },
     wealthOptions: { ...base.wealthOptions, ...data.wealthOptions },
+    retirementAssumptions: { ...base.retirementAssumptions, ...data.retirementAssumptions },
     recurring: (data.recurring ?? []).map((item) => ({
       ...item,
       targetAccountId: item.targetAccountId ?? '',
@@ -75,6 +77,8 @@ export function normalizeData(raw: unknown): FinanceData {
       const valuations = account.valuations ?? [];
       return {
         ...account,
+        retirement: account.retirement ?? false,
+        linkedLoanId: account.linkedLoanId ?? '',
         valuations:
           !valuations.length && CASH_ACCOUNT_TYPES.includes(account.type)
             ? valuationsFromBookings(account, transactions)
@@ -194,6 +198,10 @@ export class FinanceStore {
 
   updateProfile(profile: Profile): void {
     this.change((data) => ({ ...data, profile }));
+  }
+
+  setRetirementAssumptions(retirementAssumptions: RetirementAssumptions): void {
+    this.change((data) => ({ ...data, retirementAssumptions }));
   }
 
   // Accounts

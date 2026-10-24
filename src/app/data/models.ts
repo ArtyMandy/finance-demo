@@ -1,4 +1,4 @@
-import type { ChurchTax } from '../rules/rules';
+import { RULES, type ChurchTax } from '../rules/rules';
 
 /** Month as `YYYY-MM`, date as `YYYY-MM-DD`. Empty string means "not set". */
 export type Month = string;
@@ -8,6 +8,12 @@ export type AccountType = 'giro' | 'kreditkarte' | 'tagesgeld' | 'depot' | 'sach
 
 /** Cash accounts can hold bookings (to find recurring income and expenses). */
 export const CASH_ACCOUNT_TYPES: readonly AccountType[] = ['giro', 'kreditkarte', 'tagesgeld'];
+
+/**
+ * Accounts that can count towards the Vorsorgevermögen. Sachwerte only for rented or
+ * investment properties (the user decides, the app only explains it).
+ */
+export const RETIREMENT_ACCOUNT_TYPES: readonly AccountType[] = ['depot', 'tagesgeld', 'sachwert'];
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   giro: 'Girokonto',
@@ -32,6 +38,10 @@ export interface Account {
   openingBalance: number;
   /** Balance or value history entered by the user (loans as positive debt). */
   valuations: Valuation[];
+  /** Counts towards the Vorsorgevermögen (only for RETIREMENT_ACCOUNT_TYPES). */
+  retirement: boolean;
+  /** Loan financing this asset (Sachwert only); its debt is subtracted. Empty = none. */
+  linkedLoanId: string;
 }
 
 /** A booking; only used to find recurring income and expenses, not for statistics or balances. */
@@ -171,12 +181,28 @@ export interface Profile {
   jointAssessment: boolean;
   churchTax: ChurchTax;
   children: number;
+  /** 0 = not set; needed for the Vorsorgevermögen projection. */
+  birthYear: number;
+  retirementAge: number;
 }
 
 /** What the net worth on the overview includes besides accounts and depots. */
 export interface WealthOptions {
   includeAssets: boolean;
   includeDebts: boolean;
+  /** Accounts marked as Vorsorgevermögen. */
+  includeRetirement: boolean;
+}
+
+/** Assumptions for the Vorsorgevermögen projection, all as yearly rates (0.05 = 5 %). */
+export interface RetirementAssumptions {
+  depotReturn: number;
+  /** Tagesgeld interest after tax (taxed every year, so no tax at the end). */
+  cashReturn: number;
+  realEstateGrowth: number;
+  /** Yearly increase of the savings plan rates. */
+  contributionGrowth: number;
+  inflation: number;
 }
 
 /** A learned rule: bookings from this counterparty go to this category. */
@@ -203,13 +229,23 @@ export interface FinanceData {
   /** Keys of contract suggestions the user dismissed. */
   dismissedSuggestions: string[];
   wealthOptions: WealthOptions;
+  retirementAssumptions: RetirementAssumptions;
 }
 
 export function emptyFinanceData(): FinanceData {
   return {
     version: 1,
     updatedAt: new Date(0).toISOString(),
-    profile: { name: '', street: '', city: '', jointAssessment: false, churchTax: 0, children: 0 },
+    profile: {
+      name: '',
+      street: '',
+      city: '',
+      jointAssessment: false,
+      churchTax: 0,
+      children: 0,
+      birthYear: 0,
+      retirementAge: RULES.vorsorge.defaultRetirementAge,
+    },
     accounts: [],
     transactions: [],
     recurring: [],
@@ -221,6 +257,7 @@ export function emptyFinanceData(): FinanceData {
     pension: [],
     categoryRules: [],
     dismissedSuggestions: [],
-    wealthOptions: { includeAssets: true, includeDebts: true },
+    wealthOptions: { includeAssets: true, includeDebts: true, includeRetirement: true },
+    retirementAssumptions: { ...RULES.vorsorge.defaultAssumptions },
   };
 }

@@ -58,6 +58,21 @@ export const RULES = {
   },
 
   emergencyFund: { minMonths: 3, maxMonths: 6 },
+
+  /** Vorsorgevermögen projection: assumptions only, no forecast or advice. */
+  vorsorge: {
+    defaultRetirementAge: 67,
+    returnScenarios: [0.02, 0.04, 0.06, 0.08],
+    defaultAssumptions: {
+      depotReturn: 0.05,
+      cashReturn: 0.015,
+      realEstateGrowth: 0,
+      contributionGrowth: 0,
+      inflation: 0.02,
+    },
+    /** Private sale of a property is tax-free after this holding period (§ 23 EStG). */
+    realEstateSpeculationYears: 10,
+  },
 } as const;
 
 export type ChurchTax = 0 | 8 | 9;

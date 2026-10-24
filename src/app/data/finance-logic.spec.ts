@@ -124,6 +124,8 @@ describe('analytics', () => {
         id: 'giro',
         name: 'Giro',
         type: 'giro',
+        retirement: false,
+        linkedLoanId: '',
         institution: '',
         openingBalance: 1000,
         valuations: [{ date: '2026-09-30', value: 2500 }],
@@ -132,6 +134,8 @@ describe('analytics', () => {
         id: 'depot',
         name: 'Depot',
         type: 'depot',
+        retirement: false,
+        linkedLoanId: '',
         institution: '',
         openingBalance: 0,
         valuations: [{ date: '2026-01-01', value: 5000 }],
@@ -140,6 +144,8 @@ describe('analytics', () => {
         id: 'loan',
         name: 'Kredit',
         type: 'kredit',
+        retirement: false,
+        linkedLoanId: '',
         institution: '',
         openingBalance: 0,
         valuations: [{ date: '2026-01-01', value: 2000 }],
@@ -197,10 +203,11 @@ describe('analytics', () => {
 
   it('leaves assets or debts out of the net worth on request', () => {
     const wealth = { cash: 1000, investments: 500, other: 300, debts: 200, total: 1600 };
-    expect(wealthTotal(wealth, { includeAssets: true, includeDebts: true })).toBe(1600);
-    expect(wealthTotal(wealth, { includeAssets: false, includeDebts: true })).toBe(1300);
-    expect(wealthTotal(wealth, { includeAssets: true, includeDebts: false })).toBe(1800);
-    const options = { includeAssets: true, includeDebts: false };
+    const all = { includeAssets: true, includeDebts: true, includeRetirement: true };
+    expect(wealthTotal(wealth, all)).toBe(1600);
+    expect(wealthTotal(wealth, { ...all, includeAssets: false })).toBe(1300);
+    expect(wealthTotal(wealth, { ...all, includeDebts: false })).toBe(1800);
+    const options = { ...all, includeDebts: false };
     expect(wealthHistory(finance, ['2026-10'], '2026-10', options)).toEqual([7500]);
   });
 

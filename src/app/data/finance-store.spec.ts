@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Clock } from '../core/clock';
 import { FinanceStore, normalizeData } from './finance-store';
 import { parseIngCsv } from './ing-csv';
+import { RULES } from '../rules/rules';
 import { RecurringItem } from './models';
 
 const CSV = [
@@ -41,6 +42,8 @@ describe('FinanceStore', () => {
       id: 'giro',
       name: 'Giro',
       type: 'giro',
+      retirement: false,
+      linkedLoanId: '',
       institution: 'ING',
       openingBalance: 0,
       valuations: [],
@@ -122,7 +125,29 @@ describe('FinanceStore', () => {
     const data = normalizeData({ recurring: [old] });
     expect(targetAccountId).toBe('');
     expect(data.recurring[0].targetAccountId).toBe('');
-    expect(data.wealthOptions).toEqual({ includeAssets: true, includeDebts: true });
+    expect(data.wealthOptions).toEqual({
+      includeAssets: true,
+      includeDebts: true,
+      includeRetirement: true,
+    });
+  });
+
+  it('fills in the Vorsorgevermögen fields for older data', () => {
+    const { retirement, linkedLoanId, ...old } = store.data().accounts[0];
+    const data = normalizeData({
+      accounts: [old],
+      profile: { name: 'Max' },
+      wealthOptions: { includeAssets: false, includeDebts: true },
+    });
+    expect([retirement, linkedLoanId]).toEqual([false, '']);
+    expect(data.accounts[0]).toMatchObject({ retirement: false, linkedLoanId: '' });
+    expect(data.profile).toMatchObject({ name: 'Max', birthYear: 0, retirementAge: 67 });
+    expect(data.wealthOptions).toEqual({
+      includeAssets: false,
+      includeDebts: true,
+      includeRetirement: true,
+    });
+    expect(data.retirementAssumptions).toEqual(RULES.vorsorge.defaultAssumptions);
   });
 
   it('marks a goal as reached once the target is saved', () => {
