@@ -17,7 +17,7 @@ import { FinanceStore } from '../data/finance-store';
 import { FinanceSync } from '../data/finance-sync';
 import { downloadBackup } from '../shared/download';
 import { NavIcon } from './nav-icon';
-import { SECONDARY_NAV } from './nav-items';
+import { PLAYGROUND_NAV, SECONDARY_NAV } from './nav-items';
 
 const SYNC_LABELS = {
   off: '',
@@ -94,7 +94,7 @@ const SYNC_LABELS = {
     @if (menuOpen()) {
       <nav id="mobile-menu" class="mobile-menu" aria-label="Weitere Bereiche">
         <ul>
-          @for (item of secondary; track item.path) {
+          @for (item of menuItems; track item.path) {
             <li>
               <a
                 [routerLink]="item.path"
@@ -154,7 +154,7 @@ export class SiteHeader {
     viewChild.required<ElementRef<HTMLDialogElement>>('signOutDialog');
   protected readonly backupSaved = signal(false);
 
-  protected readonly secondary = SECONDARY_NAV;
+  protected readonly menuItems = [...SECONDARY_NAV, ...PLAYGROUND_NAV];
   protected readonly menuIcon = ['M4 7h16', 'M4 12h16', 'M4 17h16'];
   protected readonly closeIcon = ['M6 6l12 12', 'M18 6L6 18'];
 

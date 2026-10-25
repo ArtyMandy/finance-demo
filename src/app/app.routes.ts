@@ -80,6 +80,11 @@ export const routes: Routes = [
     title: title('Anmelden'),
     loadComponent: () => import('./login/login').then((m) => m.Login),
   },
+  {
+    path: 'playground',
+    title: title('Playground'),
+    loadComponent: () => import('./playground/playground').then((m) => m.Playground),
+  },
   { path: 'einkommen', redirectTo: 'einnahmen' },
   { path: 'uebersicht', redirectTo: '' },
   { path: '**', redirectTo: '' },

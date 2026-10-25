@@ -2,7 +2,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavIcon } from './nav-icon';
-import { PRIMARY_NAV, SECONDARY_NAV } from './nav-items';
+import { PLAYGROUND_NAV, PRIMARY_NAV, SECONDARY_NAV } from './nav-items';
 
 /** Sidebar from tablet width on, bottom tab bar on phones. */
 @Component({
@@ -42,6 +42,17 @@ import { PRIMARY_NAV, SECONDARY_NAV } from './nav-items';
               </li>
             }
           </ul>
+          <h2 id="playground-heading">Playground</h2>
+          <ul aria-labelledby="playground-heading">
+            @for (item of playground; track item.path) {
+              <li>
+                <a [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page">
+                  <app-nav-icon [paths]="item.icon" [size]="20" />
+                  {{ item.label }}
+                </a>
+              </li>
+            }
+          </ul>
         </nav>
         <p class="note">Keine Bankverbindung nötig: Buchungen manuell oder per ING-CSV erfassen.</p>
       </aside>
@@ -67,4 +78,5 @@ export class MainNav {
   readonly variant = input<'sidebar' | 'bottom'>('sidebar');
   protected readonly primary = PRIMARY_NAV;
   protected readonly secondary = SECONDARY_NAV;
+  protected readonly playground = PLAYGROUND_NAV;
 }
