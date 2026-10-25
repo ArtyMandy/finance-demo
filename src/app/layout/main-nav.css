@@ -69,12 +69,12 @@ h2 {
 }
 
 .sidebar a:not(.brand):hover {
-  background: #1e3029;
+  background: var(--color-dark-raised);
   color: #f8fafc;
 }
 
 .sidebar a.active {
-  background: #1e3029;
+  background: var(--color-dark-raised);
   color: var(--color-accent-dark);
   font-weight: 600;
 }
@@ -87,7 +87,7 @@ h2 {
   margin-top: auto;
   padding: 0.875rem;
   border-radius: 14px;
-  background: #1e3029;
+  background: var(--color-dark-raised);
   color: var(--color-muted-dark);
   font-size: 0.8125rem;
 }

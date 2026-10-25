@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, skip } from 'rxjs';
 import { StatusBar } from './core/status-bar';
+import { ThemeService } from './core/theme';
 import { FinanceSync } from './data/finance-sync';
 import { MainNav } from './layout/main-nav';
 import { SiteHeader } from './layout/site-header';
@@ -80,6 +81,8 @@ export class App {
   constructor() {
     // Starts the cloud mirror; it stays idle until the user signs in.
     inject(FinanceSync);
+    // Applies the saved colour theme before the first page renders.
+    inject(ThemeService);
 
     // Move focus to the new page after in-app navigation so screen readers announce it.
     inject(Router)

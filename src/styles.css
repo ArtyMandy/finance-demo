@@ -11,7 +11,10 @@
   --color-accent-dark: #5eead4;
   --color-muted-dark: #b7c4bc;
   --color-dark-line: #3a4a41;
+  /* Raised surfaces on the dark sidebar and dark cards */
+  --color-dark-raised: #1e3029;
   --color-tint: #e6f4f2;
+  --color-tint-light: #f0fdfa;
   --color-savings-bg: #fbefe2;
   --color-savings-text: #8a4f16;
   --color-error: #b91c1c;
@@ -24,6 +27,20 @@
   --radius-card: 20px;
   --radius-control: 12px;
   color-scheme: light;
+}
+
+/* Pink theme, switched on the Playground page. Contrast checked against WCAG AA. */
+:root[data-theme='rosa'] {
+  --color-primary: #be185d;
+  --color-primary-hover: #9d174d;
+  --color-text: #2b1420;
+  --color-accent-dark: #f9a8d4;
+  --color-muted-dark: #dcc4d0;
+  --color-dark-line: #55354a;
+  --color-dark-raised: #3e2232;
+  --color-tint: #fce7f3;
+  --color-tint-light: #fdf2f8;
+  --chart-income: #c2185b;
 }
 
 *,
@@ -440,7 +457,7 @@ a.card:hover {
 
 .button.button-secondary:hover,
 .btn-secondary:hover {
-  background: #f0fdfa;
+  background: var(--color-tint-light);
   color: var(--color-primary-hover);
 }
 
@@ -612,7 +629,7 @@ a.card:hover {
 .card-dark .field input:not([type='checkbox']),
 .card-dark .field select {
   border-color: var(--color-dark-line);
-  background: #1e3029;
+  background: var(--color-dark-raised);
   color: #f8fafc;
 }
 

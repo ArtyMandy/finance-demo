@@ -72,7 +72,7 @@ export const SECONDARY_NAV: readonly NavItem[] = [
 export const PLAYGROUND_NAV: readonly NavItem[] = [
   {
     path: '/playground',
-    label: 'Benachrichtigung testen',
+    label: 'Ausprobieren',
     icon: ['M6 16V11a6 6 0 0 1 12 0v5l2 2H4z', 'M10 21h4'],
   },
 ];
