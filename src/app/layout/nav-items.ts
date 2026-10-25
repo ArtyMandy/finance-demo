@@ -67,3 +67,12 @@ export const SECONDARY_NAV: readonly NavItem[] = [
     icon: ['M12 4a4 4 0 1 0 0 8 4 4 0 1 0 0-8', 'M4 21c0-4 3.6-6 8-6s8 2 8 6'],
   },
 ];
+
+/** Test area for trying out features, e.g. notifications. */
+export const PLAYGROUND_NAV: readonly NavItem[] = [
+  {
+    path: '/playground',
+    label: 'Benachrichtigung testen',
+    icon: ['M6 16V11a6 6 0 0 1 12 0v5l2 2H4z', 'M10 21h4'],
+  },
+];
